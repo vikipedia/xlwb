@@ -9,13 +9,17 @@ def npv(*args):
 
 def SUM(*args):
     def flatten(lists):
+        """
+        flattens the hirarchy in tuples and returns it as flattened tuple
+        """
         l = []
         for item in lists:
-            if isinstance(item, list):
-                l.extend(item)
+            if isinstance(item, tuple):
+                l.extend(list(item))
             else:
                 l.append(item)
-        return l
+        return tuple(l)
+
     return sum(flatten(args))
 
 

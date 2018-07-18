@@ -1,10 +1,13 @@
-import sys
+import sys, time
 import re
 import collections
+import functools
+import operator
 from openpyxl import load_workbook
 from openpyxl.formula import Tokenizer
 from excelfunctions import functionsmap
-from debug import debugmethods
+from debug import debugmethods, trace
+from memoize import memoize
 
 Token = collections.namedtuple("Token",['type','subtype','value'])
 
@@ -23,6 +26,7 @@ def get_cell(w, sheetname,column,row):
     s = w.get_sheet_by_name(sheetname)
     c = s.cell(column = columnind(column), row=int(row))
     return c
+
 
 def columnind(ch):
     """
@@ -55,14 +59,6 @@ def pretty_print(tree):
                       
     print_(tree, 0)
 
-def flatten(items):
-    fl = []
-    for item in items:
-        if isinstance(item, list):
-            fl.extend(item)
-        else:
-            fl.append(item)
-    return fl
 
 #@debugmethods
 class ExpressionEvaluator:
@@ -175,13 +171,13 @@ class ExpressionEvaluator:
     
     def factor(self):
         "factor ::= FUNC | RANGE| NUM | ( expr )"
+        assert_L = lambda : self.nexttok.subtype == "LOGICAL"
         assert_T = lambda : self.nexttok.subtype == "TEXT"
         assert_N = lambda : self.nexttok.subtype == "NUMBER"
         assert_R = lambda : self.nexttok.subtype == "RANGE"
         assert_O = lambda : self.nexttok.subtype == "OPEN"
         assert_C = lambda : self.nexttok.subtype == "CLOSE"
         assert_A = lambda : self.nexttok.subtype == "ARG"
-
 
         assert_ = lambda : self.nexttok.value in ["-","+"]
         if self._accept("OPERATOR-PREFIX", assert_):
@@ -192,6 +188,8 @@ class ExpressionEvaluator:
             return self.range()
         elif self._accept('OPERAND', assert_N):
             return float(self.tok.value)
+        elif self._accept('OPERAND', assert_L):
+            return False if self.tok.value=="FALSE" else True
         elif self._accept('OPERAND', assert_T):
             return self.tok.value
         elif self._accept("LITERAL"):
@@ -258,11 +256,11 @@ class ExpressionEvaluator:
     
     def parsecell(self, c):
         if c.data_type == c.TYPE_FORMULA:
-            e = ExpressionEvaluator(self.workbook)
-            return e.parse(c.value)
+            active_ = self.workbook.active  
+            eval_cell = Expandable(self.workbook, active_, address, c.value, ExpressionEvaluator)
+            return eval_cell
         else: 
             return c.value
-
 
     def range_value(self, textattr):
         pattern = re.compile(r"\$?'?(?P<SHEET>[\w &-]+)'?[\!\.]\$?(?P<RANGE>[A-Z]+\d+:[A-Z]+\d+)")
@@ -274,8 +272,7 @@ class ExpressionEvaluator:
         s = self.workbook.active
         v = [self.parsecell(c[0]) for c in s[ranges]]
         self.workbook.active = self.workbook.get_sheet_names().index(active_)
-        return v            
-        
+        return tuple(v)
         
     def range_(self):
         pattern = re.compile(r"\$?'?(?P<SHEET>[\w &-]+)'?[\!\.]\$?(?P<RANGE>[A-Z]+\d+:[A-Z]+\d+)")
@@ -285,9 +282,9 @@ class ExpressionEvaluator:
         else:
             s = self.workbook.active
             v = []
-            v= [[self.parsecell(c) for c in items]for items in s[self.tok.value]]
+            v= [tuple([self.parsecell(c) for c in items])for items in s[self.tok.value]]
 
-            return flatten(v)          
+            return tuple(v)
             #return [self.parsecell(c[0]) for c in s[self.tok.value]]
 
 
@@ -303,7 +300,7 @@ class ExpressionEvaluator:
         while self._accept("SEP", assert_A):
             args.append(self.expr())
         self._expect("FUNC", assert_C)
-        return functionsmap[funcname](*args)
+        return functionsmap[funcname](*tuple(args))
 
     @classmethod
     def evaluate_cell(cls, workbook, sheet, cell):
@@ -312,8 +309,15 @@ class ExpressionEvaluator:
         e = cls(workbook)
         s = workbook[sheet]
         c = s[cell]
+        active_ = workbook.active
+        s.active = workbook.get_sheet_names().index(sheet)
+        
+        tree =  e.parse(c.value)
 
-        return e.parse(c.value)
+        while not is_expanded(tree):
+            tree = expand(tree)
+        s.active = workbook.get_sheet_names().index(active_.title)
+        return tree
 
    
 class ExpressionTreeBuilder(ExpressionEvaluator):
@@ -388,7 +392,7 @@ class ExpressionTreeBuilder(ExpressionEvaluator):
         while self._accept("SEP", assert_A):
             args.append(self.expr())
         self._expect("FUNC", assert_C)
-        return (funcname, *args)
+        return (funcname, *tuple(args))
 
 
     def negation(self, pre):
@@ -396,13 +400,74 @@ class ExpressionTreeBuilder(ExpressionEvaluator):
         return ("*", pre, f)
     
     def parsecell(self, c):
+        address =  "!".join([self.workbook.get_active_sheet().title,c.coordinate])
+
         if c.data_type == c.TYPE_FORMULA:
-            e = ExpressionTreeBuilder(self.workbook)
-            return e.parse(c.value)
-        else: #c.data_type == c.TYPE_NUMERIC:
-            return "!".join([self.workbook.get_active_sheet().title,c.coordinate])
+            active_ = self.workbook.active  
+            eval_cell = Expandable(self.workbook, active_, address, c.value, ExpressionTreeBuilder)
+            return eval_cell
+        else:
+            return address
 
 
+Cell = collections.namedtuple("Cell",["address", "formula"])
+        
+
+class Expandable:
+
+    def __init__(self, workbook, active, address, value, cls):
+        self.workbook = workbook
+        self.active_ = active
+        self.address = address
+        self.value = value 
+        self.cls = cls
+
+
+    def __call__(self):
+        e = self.cls(self.workbook)
+        self.workbook.active = self.workbook.get_sheet_names().index(self.active_.title)
+        return e.parse(self.value)
+    
+    def __get__(self, instance, cls):
+        if instance is None:
+            return self
+        else:
+            return types.MethodType(self, instance)
+
+    def __eq__(self, e):
+        return e.address == self.address
+
+    def __hash__(self):
+        return self.address.__hash__()
+
+    def __repr__(self):
+        return "<{}>".format(self.address)
+
+@memoize
+def expand(tree):
+    if isinstance(tree, tuple):
+        return tuple(expand(item) for item in tree)
+    elif callable(tree):
+        return tree()
+    else:
+        return tree
+
+def height(tree):
+    h = 1
+    hm = h
+    def ht(tr):
+        return max([1+ht(item) for item in item])
+
+def is_expanded(tree):
+    if callable(tree):
+        return False
+    elif isinstance(tree, tuple):
+        return functools.reduce(operator.and_,(is_expanded(i) for i in tree))
+    else:
+        if isinstance(tree, list):
+            print("doop!!", tree)
+        return True
+    
 
 if __name__ == "__main__":
     sys.setrecursionlimit(12000)
@@ -411,6 +476,6 @@ if __name__ == "__main__":
     cell = sys.argv[3]
     w = load_workbook(filename)
     w.active = w.get_sheet_names().index(sheet)
-    pretty_print(ExpressionTreeBuilder.evaluate_cell(w, sheet, cell))
-    print(ExpressionEvaluator.evaluate_cell(w, sheet, cell))
+    print(ExpressionTreeBuilder.evaluate_cell(w, sheet, cell))
+    #print(ExpressionEvaluator.evaluate_cell(w, sheet, cell))
 
