@@ -40,11 +40,14 @@ def IF(inp, *args):
     if len(args)==1:
         return evaluate(args[0], inp)
     elif len(args)==2:
-        return evaluate(args[1], inp) if evaluate(args[0], inp) else False
+        if evaluate(args[0], inp):
+            return evaluate(args[1], inp)
+        else:
+            return False
     else:
         if evaluate(args[0], inp):
             return evaluate(args[1], inp) 
-        else:   
+        else:
             return evaluate(args[2], inp)
         
 def debugfunc(name, node, inputvalues):

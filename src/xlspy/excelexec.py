@@ -71,7 +71,10 @@ def update_graph(G, parent, lispexpression):
         G.add_node(c)
         G.add_edge(parent, c)
     
-def update_cellmap(cells, cellmap,debug=False):
+def update_cellmap(cells, cellmap):
+    """
+    evaluate every cell in cells and update cellmap
+    """
     for cellid in cells:
         c = cellmap.get(cellid,None)
         if isinstance(c, (tuple,list)):
@@ -80,6 +83,7 @@ def update_cellmap(cells, cellmap,debug=False):
                 cellmap[cellid] = v
             except tree_evaluator.TreeError as t:
                 print(cellid, t)
+                raise t
             except ZeroDivisionError as z:
                 #print(cellid, z, cellmap[cellid])
                 cellmap[cellid] = 0
@@ -90,63 +94,6 @@ def update_cellmap(cells, cellmap,debug=False):
 def print_dict(d):
     for k in sorted(d.keys()):
         print(k, d[k])
-
-def removedup(seq):
-    seen = set()
-    for i in seq:
-        if i not in seen:
-            seen.add(i)
-            yield i
-
-
-def eval_order(cellid, graph):
-
-    Q = collections.deque()
-    order = collections.deque()
-    Q.append(cellid)
-    seen = set()
-    
-    while Q:
-        cellid = Q.pop()
-        if cellid in seen:
-            continue
-        seen.add(cellid)
-        order.append(cellid)
-        for p in graph.successors(cellid):
-            Q.append(p)
-            
-    order.reverse()
-    return order
-
-            
-def eval_order_(cellid, graph):
-    
-    for p in graph.successors(cellid):
-        if graph.successors(p):
-            yield from eval_order(p, graph)
-        else:
-            yield p
-    yield cellid
-
-def test_eval_order():
-    cellmap = graphdata()
-    g = build_graph(cellmap)
-
-    
-    assert list(eval_order("B1",  g)) == ["A1","A2","B1"]
-    assert list(eval_order("C1",  g)) == ["A1","A2","B1","C1"]
-    assert list(eval_order("D1",  g)) == ["A1","A2","B1","C1", "D1"]
-    assert list(eval_order("E1",  g)) == ["A1","A2","B1","C1", "D1","E1"]
-
-def test_eval_order_():
-    cellmap = graphdata()
-    g = build_graph(cellmap)
-
-    
-    assert list(eval_order_("B1",  g)) == ["A1","A2","B1"]
-    assert list(eval_order_("C1",  g)) == ["A1","A2","B1","C1"]
-    assert list(eval_order_("D1",  g)) == ["A1","A2","B1","C1", "D1"]
-    assert list(removedup(eval_order_("E1",  g))) == ["A1","A2","B1","C1", "D1","E1"]
 
 def build_graph(data):
     g = nx.DiGraph()
@@ -176,7 +123,7 @@ def test_build_graph():
     
 def evaluate_cell(cellid, cellmap, graph):
     cells =  dfs_postorder_nodes(graph, cellid)
-    update_cellmap(cells, cellmap, graph)
+    update_cellmap(cells, cellmap)
     return cellmap[cellid]
 
 
