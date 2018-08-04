@@ -1,35 +1,81 @@
 
 from excelfunctions import functionsmap
+from memoize import memoize
+from debug import trace
+
+class TreeError(TypeError):
+    pass
 
 
-def SUM(*args):
-    flattned = []
-    for item in args:
-        if isinstance(item, list):
-            flattned.extend(item)
+
+def search(t, item):
+    if not t: return False
+    if isinstance(t, tuple):
+        if item in t:
+            return True
         else:
-            flattned.append(item)
-    return sum(flattned)
+            for t_ in t:
+                if search(t_, item):
+                    return True
+                else:
+                    continue
+            return False
+    
+
+def test_search():
+    t = (1,(2,3,4,(5)))
+    assert search(t, 1)
+    assert search(t, 3)
+    assert search(t, 5)
+    assert search(t, 6) == False
+    
+def IFERROR(v, alternate, inputvalues):
+    try:
+        return evaluate(v, inputvalues)
+    except Exception as e:
+        return evaluate(alternate, inputvalues)
 
 
-operators={
-    "*":lambda x,y:x*y,
-    "/":lambda x,y:x/y,
-    "+":lambda x,y:x+y,
-    "-":lambda x,y:x-y,
-    "SUM":SUM
-    }
+def IF(inp, *args):
+    if len(args)==1:
+        return evaluate(args[0], inp)
+    elif len(args)==2:
+        return evaluate(args[1], inp) if evaluate(args[0], inp) else False
+    else:
+        if evaluate(args[0], inp):
+            return evaluate(args[1], inp) 
+        else:   
+            return evaluate(args[2], inp)
+        
+def debugfunc(name, node, inputvalues):
+    if node[0]==name:
+        for a in node[1:]:
+            print(a, "=",evaluate(a, inputvalues))
 
-
+    
 def evaluate(node, inputvalues):
+
     if isinstance(node, tuple):
+        #debugfunc("CELL", node, inputvalues)
+        if node[0]=="IFERROR":
+            return IFERROR(*node[1:], inputvalues)
+        elif node[0]=="IF":
+            return IF(inputvalues, *node[1:])
+
         function = functionsmap[node[0]]
         arguments = [evaluate(item, inputvalues) for item in node[1:]]
+        for a in arguments:
+            if isinstance(a, tuple):
+                raise TreeError("Invalid arguments to {0} : {1}".format(node[0], a))
         return function(*arguments)
     elif isinstance(node, list):
         return [evaluate(item, inputvalues) for item in node]
-    elif isinstance(node, str):
-        return inputvalues[node]
+    elif isinstance(node, str): # these are cellids or literal strings
+        if "!" in node:
+            default = 0
+        else:
+            default = node
+        return inputvalues.get(node, default)#to handle invalid cells
     else:
         return node
 

@@ -5,11 +5,14 @@ import functools
 import operator
 from openpyxl import load_workbook
 from openpyxl.formula import Tokenizer
-from excelfunctions import functionsmap
+from excelfunctions import functionsmap, OFFSET
 from debug import debugmethods, trace
 from memoize import memoize
+import tree_evaluator
 
 Token = collections.namedtuple("Token",['type','subtype','value'])
+Cell = collections.namedtuple("Cell", ['address','value','formula'])
+
 
 def generate_tokens(text):
     """
@@ -23,28 +26,9 @@ def generate_tokens(text):
 
 #Utility functions
 def get_cell(w, sheetname,column,row):
-    s = w.get_sheet_by_name(sheetname)
-    c = s.cell(column = columnind(column), row=int(row))
+    s = w[sheetname]
+    c = s["".join([column,row])]
     return c
-
-
-def columnind(ch):
-    """
-    accepts column numbers in excels' columnname format
-    and returns actual column number.
-    >>> column("A")
-    1
-    >>> column("AA")
-    27
-    """
-    n = len(ch)
-    return sum((ord(c)-64)*26**(n-i-1) for i,c in enumerate(ch))
-
-def extract_column_row(cell):
-    pattern = re.compile(r'\$?(?P<COL>[A-Z]+)\$?(?P<ROW>\d+)')
-    m = pattern.match(cell)
-    column, row = m.groups()
-    return column, row
 
 
 def pretty_print(tree):
@@ -65,6 +49,11 @@ class ExpressionEvaluator:
 
     def __init__(self, workbook=None):
         self.workbook = workbook
+
+    @classmethod
+    def instance(cls, *args):
+        return cls(*args)
+        
     
     def parse(self, text):
         self.tokens = generate_tokens(text)
@@ -96,36 +85,38 @@ class ExpressionEvaluator:
     # Grammar rules follow
     def expr(self):
         "expression ::= expr { ('='|'<'|'>'|'<='|'>=') expr }*"
-        exprval = self.expr_()
+        exprval = self.strexpr() 
         assert_ = lambda :self.nexttok.value in ["=",">","<","<=",">="]
+
         while self._accept('OPERATOR-INFIX',assert_):
             op = self.tok.value
-            right = self.expr_()
-            if op == "=":
-                exprval = exprval == right
-            elif op == '<':
-                exprval = exprval < right
-            elif op == '>':
-                exprval = exprval > right
-            elif op == ">=":
-                exprval = exprval >= right
-            elif op == "<=":
-                exprval = exprval <= right
-        return exprval        
-    
+            left = exprval or 0
+            right = self.strexpr() or 0 #FIXME what is it returns string?
+            exprval = self.create_node(op, left, right)
+        return exprval
+
+    def strexpr(self):
+        "string expression ::= expr_ { & } expr_"
+        exprval = self.expr_() 
+        assert_ = lambda :self.nexttok.value in ["&"]
+        
+        while self._accept('OPERATOR-INFIX',assert_):
+            op = self.tok.value
+            left = exprval or ""
+            right = self.expr_() or ""
+            exprval = self.create_node(op, left, right)
+        return exprval
     
     def expr_(self):
         "expression ::= term { ('+'|'-') term }*"
         exprval = self.term()
         assert_ = lambda :self.nexttok.value in ["+","-"]
+
         while  self._accept('OPERATOR-INFIX', assert_):
             op = self.tok.value
             left = exprval or 0
             right = self.term() or 0
-            if op == '+':
-                exprval = left + right
-            elif op == '-':
-                exprval = left - right
+            exprval = self.create_node(op, left, right)
         return exprval
 
     
@@ -133,13 +124,12 @@ class ExpressionEvaluator:
         "term ::= factor { ('*'|'/') factor }*"
         termval = self.power()
         assert_ = lambda :self.nexttok.value in ["*","/"]
+
         while self._accept('OPERATOR-INFIX', assert_):
             op = self.tok.value
+            left = termval
             right = self.power()
-            if op == '*':
-                termval *= right
-            elif op == '/':
-                termval /= right
+            termval = self.create_node(op, left, right)
         return termval
 
 
@@ -147,11 +137,12 @@ class ExpressionEvaluator:
         "power ::= percent ^ n "
         termval = self.percent()
         assert_ = lambda :self.nexttok.value == "^"
+
         while self._accept('OPERATOR-INFIX', assert_):
             op = self.tok.value
             left = termval
             right = self.percent()
-            termval = left ** right
+            termval = self.create_node(op, left, right)
         return termval
 
 
@@ -159,15 +150,16 @@ class ExpressionEvaluator:
         "modulus = factor {%}"
         termval = self.factor()
         assert_ = lambda : self.nexttok.value == "%"
+
         while self._accept("OPERATOR-POSTFIX", assert_):
             op = self.tok.value
             left = termval
-            termval = left/100
+            termval = self.create_node("/", left, 100)
         return termval
 
     def negation(self, pre):
         v = self.factor()
-        return pre*v
+        return self.create_node("*", pre, v)
     
     def factor(self):
         "factor ::= FUNC | RANGE| NUM | ( expr )"
@@ -185,13 +177,13 @@ class ExpressionEvaluator:
         elif self._accept("FUNC", assert_O):
             return self.function()
         elif self._accept('OPERAND', assert_R):
-            return self.range()
+            return self.range(self.tok.value)
         elif self._accept('OPERAND', assert_N):
             return float(self.tok.value)
         elif self._accept('OPERAND', assert_L):
             return False if self.tok.value=="FALSE" else True
         elif self._accept('OPERAND', assert_T):
-            return self.tok.value
+            return self.text_(self.tok.value)
         elif self._accept("LITERAL"):
             return self.tok.value
         elif self._accept('PAREN',assert_O):
@@ -202,50 +194,58 @@ class ExpressionEvaluator:
             raise SyntaxError('Expected NUMBER or LPAREN')
 
 
+    def text_(self, text):
+        if text.startswith("'") and text.endswith("'"):
+            return text.strip().replace("'","").strip()
+        elif text.startswith('"') and text.endswith('"'):
+            return text.strip().replace('"',"").strip()
+        else:
+            return text.strip()
         
-    def range(self):
+    def range(self, text):
         """
         evaluate excel cell ranges
         """
         namedranges = [r.name for r in self.workbook.get_named_ranges()]
-        if self.tok.value in namedranges:
-            return self.namedrange_(self.tok.value)
-        elif ":" in self.tok.value:
-            return self.range_()
-        else:
-            return self.cell()
-
-    def namedrange_(self, rangename):
-        r = self.workbook.get_named_range(rangename)
+        if text in namedranges:
+            namedrange = self.workbook.get_named_range(text)
+            text = namedrange.attr_text
         
+        if ":" in text:
+            return self.range_(text)
+        else:
+            return self.cell(text)
 
-    def cell(self):
+
+        
+    def cell(self, text):
         """
         evaluate indivudual cell of excel
         """
         pattern = re.compile(r"\$?'?(?P<SHEET>[\w &-]+)'?[\!\.]\$?(?P<COL>[A-Z]+)\$?(?P<ROW>\d+)")
-        m = pattern.match(self.tok.value)
-        if pattern.match(self.tok.value):
-            return self.cell1()
+        m = pattern.match(text)
+        if pattern.match(text):
+            return self.cell1(text, pattern)
         else:
-            return self.cell1_()
+            return self.cell1_(text)
 
-    def cell1_(self):
+
+    def cell1_(self, text):
         """
         evaluate cells on active sheet
         """
 
-        col, row = extract_column_row(self.tok.value)
         sheet = self.workbook.active
         c = sheet[self.tok.value]
         return self.parsecell(c)
 
-    def cell1(self):
+    
+    def cell1(self, text, pattern):
         """
         evaluate cells from non active sheet
         """
-        pattern = re.compile(r"\$?'?(?P<SHEET>[\w &-]+)'?[\!\.]\$?(?P<COL>[A-Z]+)\$?(?P<ROW>\d+)")
-        m = pattern.match(self.tok.value)
+
+        m = pattern.match(text)
         sheet, col, row = m.groups()
         c = get_cell(self.workbook, sheet, col, row)
         active_ = self.workbook.active.title
@@ -255,39 +255,64 @@ class ExpressionEvaluator:
         return v
     
     def parsecell(self, c):
+        address =  "!".join([self.workbook.get_active_sheet().title,c.coordinate])
         if c.data_type == c.TYPE_FORMULA:
-            active_ = self.workbook.active  
-            eval_cell = Expandable(self.workbook, active_, address, c.value, ExpressionEvaluator)
-            return eval_cell
+                return ("CELL", address)
         else: 
             return c.value
 
-    def range_value(self, textattr):
-        pattern = re.compile(r"\$?'?(?P<SHEET>[\w &-]+)'?[\!\.]\$?(?P<RANGE>[A-Z]+\d+:[A-Z]+\d+)")
+    def range_value(self, textattr, pattern):
         m = pattern.match(textattr)
     
         sheet, ranges = m.groups()
         active_ = self.workbook.active.title
         self.workbook.active = self.workbook.get_sheet_names().index(sheet)
         s = self.workbook.active
-        v = [self.parsecell(c[0]) for c in s[ranges]]
+        v = [[self.parsecell(col) for col in row] for row in s[ranges]]
         self.workbook.active = self.workbook.get_sheet_names().index(active_)
-        return tuple(v)
+        return v
         
-    def range_(self):
-        pattern = re.compile(r"\$?'?(?P<SHEET>[\w &-]+)'?[\!\.]\$?(?P<RANGE>[A-Z]+\d+:[A-Z]+\d+)")
-        m = pattern.match(self.tok.value)
+    def range_(self, text):
+        
+        pattern = re.compile(r"\$?'?(?P<SHEET>[\w &-]+)'?[\!\.]\$?(?P<RANGE>[A-Z]+\$?\d+:\$?[A-Z]+\$?\d+)")
+        m = pattern.match(text)
+
         if m:
-            return self.range_value(self.tok.value)
+            return self.range_value(text, pattern)
         else:
             s = self.workbook.active
-            v = []
-            v= [tuple([self.parsecell(c) for c in items])for items in s[self.tok.value]]
+            v= [[self.parsecell(col) for col in row] for row in s[text]]
 
-            return tuple(v)
+            return v
             #return [self.parsecell(c[0]) for c in s[self.tok.value]]
 
+    def create_node(self, op,  *args):
+        if not args:
+            return op
+        else:
+            return functionsmap[op](*args)
 
+            
+            
+    def OFFSET(self):
+        assert_C = lambda : self.nexttok.subtype == "CLOSE"
+        assert_A = lambda : self.nexttok.subtype == "ARG"
+    
+        self._advance()
+        ref = self.tok.value # take this as literal string
+        
+        args = []
+        while self._accept("SEP", assert_A):
+            args.append(self.expr())
+        self._expect("FUNC", assert_C)
+
+        try:
+            r = OFFSET(ref, *[tree_evaluator.evaluate(a, {}) for a in args])
+        except Exception as e:
+            print("OFFSET Failure!", e)
+            return None
+        return self.range(r)
+        
     def function(self):
         """
         function ::=  FUNC (EXPR,EXPR..)
@@ -296,15 +321,17 @@ class ExpressionEvaluator:
         assert_A = lambda : self.nexttok.subtype == "ARG"
     
         funcname,_ = self.tok.value.split("(")
+        if funcname == "OFFSET":
+            return self.OFFSET()
+        
         args = [self.expr()]
         while self._accept("SEP", assert_A):
             args.append(self.expr())
         self._expect("FUNC", assert_C)
-        return functionsmap[funcname](*tuple(args))
+        return self.create_node(funcname, *args)
 
     @classmethod
     def evaluate_cell(cls, workbook, sheet, cell):
-        column , row = extract_column_row(cell)
         
         e = cls(workbook)
         s = workbook[sheet]
@@ -315,7 +342,10 @@ class ExpressionEvaluator:
         tree =  e.parse(c.value)
 
         while not is_expanded(tree):
+            print(tree)
+            x = input()
             tree = expand(tree)
+
         s.active = workbook.get_sheet_names().index(active_.title)
         return tree
 
@@ -323,126 +353,16 @@ class ExpressionEvaluator:
 class ExpressionTreeBuilder(ExpressionEvaluator):
 
 
-    # Grammar rules follow
-    def expr(self):
-        "expression ::= expr { ('='|'<'|'>'|'<='|'>=') expr }*"
-        exprval = self.expr_()
-        assert_ = lambda :self.nexttok.value in ["=",">","<","<=",">="]
-        while self._accept('OPERATOR-INFIX',assert_):
-            op = self.tok.value
-            right = self.expr_()
-            left = exprval
-            exprval = (op, left, right)
-        return exprval
+    def create_node(self, op, *args):
+        if not args:
+            return op
+        else:
+            return (op, *args)
 
-    
-    def expr_(self):
-        "expression ::= term { ('+'|'-') term }*"
-        exprval = self.term()
-        assert_ = lambda :self.nexttok.value in ["+","-"]
-        while self._accept('OPERATOR-INFIX',assert_):
-            left = exprval
-            op = self.tok.value
-            right = self.term()
-            left = exprval
-            exprval = (op, left, right)
-        return exprval
-
-    def term(self):
-        "term ::= power { ('*'|'/') power }*"
-        termval = self.power()
-        assert_ = lambda :self.nexttok.value in ["*","/"]
-        while self._accept('OPERATOR-INFIX', assert_):
-            left = termval
-            op = self.tok.value
-            right = self.power()
-            if op == '*':
-                termval = ("*",left, right)
-            elif op == '/':
-                termval =("/", left, right)
-        return termval
-
-
-    def power(self):
-        "power ::= percent {^} percent"
-        termval = self.percent()
-        assert_ = lambda : self.nexttok.value == "^"
-        while self._accept("OPERATOR-INFIX", assert_):
-            op = self.tok.value
-            right = self.percent()
-            termval = (op, termval, right)
-        return termval
-
-    def percent(self):
-        "percent ::= factor {%} "
-        termval = self.factor()
-        assert_ = lambda : self.nexttok.value == "%"
-        while self._accept("OPERATOR-POSTFIX", assert_):
-            op = self.tok.value
-            termval = ("/", termval, 100)
-        return termval
-        
-    
-    def function(self):
-        assert_C = lambda : self.nexttok.subtype == "CLOSE"
-        assert_A = lambda : self.nexttok.subtype == "ARG"
-    
-        funcname,_ = self.tok.value.split("(")
-        args = [self.expr()]
-        while self._accept("SEP", assert_A):
-            args.append(self.expr())
-        self._expect("FUNC", assert_C)
-        return (funcname, *tuple(args))
-
-
-    def negation(self, pre):
-        f = self.factor()
-        return ("*", pre, f)
-    
     def parsecell(self, c):
         address =  "!".join([self.workbook.get_active_sheet().title,c.coordinate])
-
-        if c.data_type == c.TYPE_FORMULA:
-            active_ = self.workbook.active  
-            eval_cell = Expandable(self.workbook, active_, address, c.value, ExpressionTreeBuilder)
-            return eval_cell
-        else:
-            return address
-
-
-Cell = collections.namedtuple("Cell",["address", "formula"])
+        return ("CELL", address)
         
-
-class Expandable:
-
-    def __init__(self, workbook, active, address, value, cls):
-        self.workbook = workbook
-        self.active_ = active
-        self.address = address
-        self.value = value 
-        self.cls = cls
-
-
-    def __call__(self):
-        e = self.cls(self.workbook)
-        self.workbook.active = self.workbook.get_sheet_names().index(self.active_.title)
-        return e.parse(self.value)
-    
-    def __get__(self, instance, cls):
-        if instance is None:
-            return self
-        else:
-            return types.MethodType(self, instance)
-
-    def __eq__(self, e):
-        return e.address == self.address
-
-    def __hash__(self):
-        return self.address.__hash__()
-
-    def __repr__(self):
-        return "<{}>".format(self.address)
-
 @memoize
 def expand(tree):
     if isinstance(tree, tuple):

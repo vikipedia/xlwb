@@ -11,12 +11,6 @@ def test_tokenizer():
     assert tokens[1].type == "OPERAND"
 
 
-def test_columnind():
-    assert xlp.columnind("A")==1
-    assert xlp.columnind("AA")==27
-    assert sorted(["A","AA","B","C","AAA"], key=xlp.columnind) == ["A","B","C","AA","AAA"]
-
-
 def test_ExpressionEvaluator():
     e = xlp.ExpressionEvaluator()
     assert e.parse("=2+3") == 5
@@ -34,6 +28,7 @@ def test_ExpressionEvaluator():
     assert e.parse("=IF(3>4,1,2)") == 2
     assert e.parse("=IF(3<4,1,2)") == 1
     assert e.parse("=2^3+4") == 12
+    assert e.parse("=4/2") == 2
     assert e.parse("=3%") == 0.03
     assert e.parse("=3%*2") == 0.06
     assert e.parse("=-3") == -3
@@ -60,10 +55,10 @@ def test_ExpressionTreeBuilder():
 
 @pytest.fixture
 def workbook():
-    w = load_workbook("/home/vikrant/Documents/prayas/RE_Tariff_and_Financial_Analysis_Tool_v2.1-unprotected.xlsx")
+    w = load_workbook("/home/vikrant/programming/work/gitrep/prayas/proto/sample.xlsx")
     yield w
 
-
+"""
 def test_expand(workbook):
     e = xlp.ExpressionTreeBuilder(workbook)
     assert xlp.expand(()) == ()
@@ -74,8 +69,9 @@ def test_expand(workbook):
     def two():
         return 2
     assert xlp.expand(("*", two, two)) == ("*" , 2, 2)
-    assert xlp.expand(e.parse("=SUM(A1:D1)")) == ("SUM", (("Introduction!A1", "Introduction!B1", "Introduction!C1", "Introduction!D1"),))
+    assert xlp.expand(e.parse("=SUM(A2:A6)")) == ("SUM",(("CELL","Sheet1!A2"),),(("CELL","Sheet1!A3"),),(("CELL","Sheet1!A4"),),(("CELL","Sheet1!A5"),),(("CELL","Sheet1!A6"),))
     assert xlp.expand(("*", 1, ("+" , 2, lambda: 3))) == ("*", 1, ("+", 2, 3))
+"""
 
 def test_is_expanded():
     assert xlp.is_expanded(("*", 1, 1))
@@ -84,8 +80,7 @@ def test_is_expanded():
     
 def test_excel(workbook):
     e = xlp.ExpressionTreeBuilder(workbook)
-    assert e.parse("=SUM(A1:D1)") == ("SUM", (("Introduction!A1", "Introduction!B1", "Introduction!C1", "Introduction!D1"),))
-    expr = e.parse("='Inputs&Summary!M4'")
-    
+    assert e.parse("=SUM(A2:A6)") == ("SUM",[[("CELL","Sheet1!A2")],[("CELL","Sheet1!A3")],[("CELL","Sheet1!A4")],[("CELL","Sheet1!A5")],[("CELL","Sheet1!A6")]])
+    assert e.parse("=SUM(B2:C3)") ==  ("SUM" , [[("CELL", "Sheet1!B2"),("CELL","Sheet1!C2")],[("CELL", "Sheet1!B3"), ("CELL", "Sheet1!C3")]])
     
 

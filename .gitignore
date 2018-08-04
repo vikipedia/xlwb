@@ -6,6 +6,13 @@ __pycache__/
 #editor files
 *~
 
+#data files
+*.expr
+*.out
+*.yaml
+
+#experiments
+experiments.ipynb
 
 # C extensions
 *.so
