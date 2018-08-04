@@ -80,7 +80,6 @@ def update_cellmap(cells, cellmap,debug=False):
                 cellmap[cellid] = v
             except tree_evaluator.TreeError as t:
                 print(cellid, t)
-                doom
             except ZeroDivisionError as z:
                 #print(cellid, z, cellmap[cellid])
                 cellmap[cellid] = 0
@@ -182,7 +181,7 @@ def evaluate_cell(cellid, cellmap, graph):
 
 
 def test_exec_excel():
-    filename = "/home/vikrant/programming/work/gitrep/prayas/proto/sample.xlsx"
+    filename = "sample.xlsx"
     accuracy = 0.0001
     cellmap = create_cellmap(filename, {})
     g = build_graph(cellmap)
@@ -207,7 +206,8 @@ if __name__ == "__main__":
     g = build_graph(cellmap)
 
     for o in outputs:
-        print(evaluate_cell(o, cellmap, g)
+        print(evaluate_cell(o, cellmap, g))
+        
     """
     with open("cellmap2.yaml", "w") as f:
         f.write(yaml.dump(cellmap))

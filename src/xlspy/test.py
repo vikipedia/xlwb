@@ -55,7 +55,7 @@ def test_ExpressionTreeBuilder():
 
 @pytest.fixture
 def workbook():
-    w = load_workbook("/home/vikrant/programming/work/gitrep/prayas/proto/sample.xlsx")
+    w = load_workbook("sample.xlsx")
     yield w
 
 """
