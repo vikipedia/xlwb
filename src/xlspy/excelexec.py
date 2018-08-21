@@ -75,6 +75,7 @@ def update_cellmap(cells, cellmap):
     """
     evaluate every cell in cells and update cellmap
     """
+    count = 0
     for cellid in cells:
         c = cellmap.get(cellid,None)
         if isinstance(c, (tuple,list)):
@@ -82,14 +83,14 @@ def update_cellmap(cells, cellmap):
                 v = tree_evaluator.evaluate(c, cellmap)
                 cellmap[cellid] = v
             except tree_evaluator.TreeError as t:
-                print(cellid, t)
-                raise t
+                count += 1
             except ZeroDivisionError as z:
                 #print(cellid, z, cellmap[cellid])
                 cellmap[cellid] = 0
             except Exception as ex:
                 print(cellid, c)
                 raise ex
+    return count
  
 def print_dict(d):
     for k in sorted(d.keys()):
@@ -145,18 +146,18 @@ if __name__ == "__main__":
     cellid = sys.argv[2]
     inputs = {'Inputs&Summary!D15':"Andhra Pradesh"}
     outputs = [c+str(i) for i in range(8, 3, -1) for c in ["J","K","L","M"]]
-    outputs = reversed(["Inputs&Summary!"+c for c in outputs])
+    outputs = ["Inputs&Summary!"+c for c in outputs]
+    outputs.reverse()
     cellmap = create_cellmap(filename, inputs)
 
 
     #cellmap = yaml.load(open("cellmap.yaml"))
     g = build_graph(cellmap)
 
-    for o in outputs:
+    for o in outputs+outputs:
         print(evaluate_cell(o, cellmap, g))
         
     """
     with open("cellmap2.yaml", "w") as f:
         f.write(yaml.dump(cellmap))
-    """
-    
+    """  

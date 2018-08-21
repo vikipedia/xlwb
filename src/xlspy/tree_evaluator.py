@@ -2,6 +2,7 @@
 from excelfunctions import functionsmap
 from memoize import memoize
 from debug import trace
+import pytest
 
 class TreeError(TypeError):
     pass
@@ -49,7 +50,21 @@ def IF(inp, *args):
             return evaluate(args[1], inp) 
         else:
             return evaluate(args[2], inp)
-        
+
+
+def test_IF():
+    e1 = ("IF", 1, 2, ("CELL", "C22"))
+    e2 = ("IF", 0, ("CELL", "C22"), 2)
+    e3 = ("IF", 1)
+    e4 = ("IF", ("=", 1, 2))
+    e5 = ("IF", 0, 2, ("CELL", "C22"))
+    assert evaluate(e1, {}) == 2
+    assert evaluate(e2, {}) == 2    
+    assert evaluate(e3, {}) == 1
+    assert evaluate(e4, {}) == False
+    with pytest.raises(TreeError):
+        assert evaluate(evaluate(e5, {}), {})==1
+    
 def debugfunc(name, node, inputvalues):
     if node[0]==name:
         for a in node[1:]:
