@@ -1,0 +1,8 @@
+input_cells: {Inputs&Summary!D15: CERC, Inputs&Summary!D16: Bagasse}
+output: Inputs&Summary!I3:M8
+macro:
+  module: RE_Tariff_macros
+  function: HandleTechOrStateChange
+  args:
+    state: Inputs&Summary!D15
+    technology: Inputs&Summary!D16
