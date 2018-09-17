@@ -34,6 +34,7 @@ def IFERROR(v, alternate, inputvalues):
     try:
         return evaluate(v, inputvalues)
     except Exception as e:
+        print("IFERROR", e)
         return evaluate(alternate, inputvalues)
 
 
@@ -53,17 +54,17 @@ def IF(inp, *args):
 
 
 def test_IF():
-    e1 = ("IF", 1, 2, ("CELL", "C22"))
-    e2 = ("IF", 0, ("CELL", "C22"), 2)
+    e1 = ("IF", 1, 2, ("CELL", "S!C22"))
+    e2 = ("IF", 0, ("CELL", "S!C22"), 2)
     e3 = ("IF", 1)
     e4 = ("IF", ("=", 1, 2))
-    e5 = ("IF", 0, 2, ("CELL", "C22"))
+    e5 = ("IF", 0, 2, ("+", 1, ("CELL", "S!C22")))
     assert evaluate(e1, {}) == 2
     assert evaluate(e2, {}) == 2    
     assert evaluate(e3, {}) == 1
     assert evaluate(e4, {}) == False
     with pytest.raises(TreeError):
-        assert evaluate(evaluate(e5, {}), {})==1
+        assert evaluate(e5, {"S!C22":("+",1,1)})==1
     
 def debugfunc(name, node, inputvalues):
     if node[0]==name:

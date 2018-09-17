@@ -5,6 +5,7 @@ import re
 import string
 import functools
 import operator
+import numba
 
 def extract_column_row(cell):
     pattern = re.compile(r'\$?(?P<COL>[A-Z]+)\$?(?P<ROW>\d+)')
@@ -12,6 +13,81 @@ def extract_column_row(cell):
     column, row = m.groups()
     return column, row
 
+def excelrange(range_):
+    def cell(c,r):
+        return "!".join([sheet, indtocol(c)+ str(r)])
+    if ":" not in range_:
+        return [range_]    
+    sheet, r = range_.split("!")
+    start,end = r.split(":")
+    sc,sr = extract_column_row(start)
+    ec,er = extract_column_row(end)
+    sc, sr = columnind(sc), int(sr)
+    ec, er = columnind(ec), int(er)
+    return [[ cell(j, i) for j in range(sc, ec+1)] for i in range(sr, er+1)]
+
+def test_excelrange():
+    assert excelrange("S!A1:A3") == [["S!A1"], ["S!A2"], ["S!A3"]]
+    assert excelrange("S!A1:C1") == [["S!A1",  "S!B1", "S!C1"]]
+    assert excelrange("S!A1:B2") == [["S!A1",  "S!B1"],["S!A2","S!B2"]]
+    
+
+def updateformula(formula, data):
+    """
+    >>> updateformula(("+", 1, ("CELL", "A1")), {"A1", "B1"})
+    >>> ("+", 1, ("CELL", "B1"))
+    """
+    if isinstance(formula, tuple):
+        if formula[0] == "CELL":
+            return ("CELL", data.get(formula[1],formula[1]))
+        else:
+            return tuple(updateformula(item, data) for item in formula)
+    elif isinstance(formula, list):
+        return [updateformula(item, data) for item in formula]
+    else:
+        return formula
+
+def test_update_formula():
+    data = {"A1":"B1", "A2":"B2"}
+    f1 = ("CELL" ,"A1")
+    g1 = ("CELL" ,"B1")
+    f2 = [("CELL", "A1"), ("CELL", "A2"),1, 2]
+    g2 = [("CELL", "B1"), ("CELL", "B2"),1, 2]
+    f3 = ("FUNC" , 1 , ("CELL", "A1"), ("+", 2, ("CELL", "A2")))
+    g3 = ("FUNC" , 1 , ("CELL", "B1"), ("+", 2, ("CELL", "B2")))
+    assert updateformula(f1, data) == g1
+    assert updateformula(f2, data) == g2
+    assert updateformula(f3, data) == g3
+    
+def copypaste(cellmap,source, target):
+    """
+    copy contents of source range and paste it to target range.
+    There is assumption that source and target have same size and shape.
+    """
+    s = excelrange(source)
+    t = excelrange(target)
+    mapping = {}
+    
+    for sr, tr in zip(s,t):
+        for sc, tc in zip(sr, tr):
+            mapping[sc] = tc
+            
+    for k,v in mapping.items():
+        f = updateformula(cellmap.get(k,None), mapping)
+        cellmap[v] = f
+
+def test_copypaste():
+    cm = {"S!A1":10,"S!A2":("+", ("CELL", "S!A1"),2),"S!A3":("CELL", "S!C1"),
+          "S!B1":20,"S!B2":0, "S!B3":0}
+    copypaste(cm, "S!A1:A3", "S!B1:B3")
+    assert cm["S!B1"] == 10
+    assert cm["S!B2"] == ("+", ("CELL", "S!B1"),2)
+    assert cm["S!B3"] == ("CELL","S!C1")
+    
+def print_table(table):
+    vwrap()
+    
+        
 def indtocol(num):
     """
     >>> indtocol(1)
@@ -53,9 +129,16 @@ def test_columnind():
     assert sorted(["A","AA","B","C","AAA"], key=columnind) == ["A","B","C","AA","AAA"]
 
 def npv(*args):
-    discount_rate = args[0]
+    discount_rate = float_(args[0])
     cashflow = numeric(flatten(flatten(args[1])))
-    return sum([float(x)*(1+discount_rate)**-(i+1) for (i,x) in enumerate(cashflow)])
+    try:
+        return sum([float_(x)*(1+discount_rate)**-(i+1) for (i,x) in enumerate(cashflow)])
+    except TypeError as t:
+        print([type(i) for i in args], args)
+
+def test_npv():
+    assert npv(10, range(10)) == numpy.npv(10, range(10))
+
 
 def flatten(lists):
     """
@@ -69,6 +152,7 @@ def flatten(lists):
             l.append(item)
     return l
 
+@numba.jit
 def float_(x):
     if not x : return 0
     if x == "-" : return 0
@@ -185,6 +269,7 @@ def ROUND(v, ndigits=None):
 
 
 def IRR(values):
+    values = numeric(flatten(flatten(values)))
     return numpy.irr(values)
 
 
@@ -349,7 +434,7 @@ functionsmap ={
     "IF":IF,
     "NPV":npv,
     "PMT":PMT,
-    "IRR":numpy.irr,
+    "IRR":IRR,
     "SEARCH":SEARCH,
     "AND":AND,
     "OR": OR,

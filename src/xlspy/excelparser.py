@@ -1,4 +1,4 @@
-import sys, time
+import sys, time, argparse, os
 import re
 import collections
 import functools
@@ -9,10 +9,9 @@ from excelfunctions import functionsmap, OFFSET
 from debug import debugmethods, trace
 from memoize import memoize
 import tree_evaluator
+import pickle
 
 Token = collections.namedtuple("Token",['type','subtype','value'])
-Cell = collections.namedtuple("Cell", ['address','value','formula'])
-
 
 def generate_tokens(text):
     """
@@ -168,6 +167,7 @@ class ExpressionEvaluator:
         assert_N = lambda : self.nexttok.subtype == "NUMBER"
         assert_R = lambda : self.nexttok.subtype == "RANGE"
         assert_O = lambda : self.nexttok.subtype == "OPEN"
+        assert_E = lambda : self.nexttok.subtype == "ERROR"
         assert_C = lambda : self.nexttok.subtype == "CLOSE"
         assert_A = lambda : self.nexttok.subtype == "ARG"
 
@@ -186,6 +186,8 @@ class ExpressionEvaluator:
             return self.text_(self.tok.value)
         elif self._accept("LITERAL"):
             return self.tok.value
+        elif self._accept("OPERAND",assert_E):
+            return None
         elif self._accept('PAREN',assert_O):
             exprval = self.expr()
             self._expect('PAREN', assert_C)
@@ -363,39 +365,63 @@ class ExpressionTreeBuilder(ExpressionEvaluator):
         address =  "!".join([self.workbook.get_active_sheet().title,c.coordinate])
         return ("CELL", address)
         
-@memoize
-def expand(tree):
-    if isinstance(tree, tuple):
-        return tuple(expand(item) for item in tree)
-    elif callable(tree):
-        return tree()
-    else:
-        return tree
 
-def height(tree):
-    h = 1
-    hm = h
-    def ht(tr):
-        return max([1+ht(item) for item in item])
-
-def is_expanded(tree):
-    if callable(tree):
-        return False
-    elif isinstance(tree, tuple):
-        return functools.reduce(operator.and_,(is_expanded(i) for i in tree))
-    else:
-        if isinstance(tree, list):
-            print("doop!!", tree)
-        return True
+def create_cellmap(filename, inputs):
+    w = load_workbook(filename=filename)
+    cellmap = {}
     
+    et = ExpressionTreeBuilder(w)
+    
+    
+    #put named ranges in cellmap
+    for r in w.get_named_ranges():
+        try:
+            e = et.parse("="+r.attr_text)
+            cellmap[r.name] = e
+        except Exception as e:
+            print("Skipping ", r.name , e)
+
+    #put every cell in cellmap
+    for i,name in enumerate(w.get_sheet_names()):
+        w.active = i
+        sheet = w[name]
+        for col in sheet:
+            for c in col:
+                cellid = "!".join([name, c.coordinate])
+                if c.value==None:
+                    pass
+                else:
+                    if c.data_type == c.TYPE_FORMULA:
+                        e = et.parse(c.value)
+                        cellmap[cellid] = e
+                    else:
+                        cellmap[cellid] = c.value
+                        
+    cellmap.update(inputs)
+    return cellmap
+    
+def output_extn(filename):
+    tokens = filename.split(".")
+    return ".".join(tokens[:-1] + ["bin"])
+
+
+def parse_args():
+    parser = argparse.ArgumentParser("Excel data generator")
+    parser.add_argument("filename",
+                        type=str,
+                        help="input excel filename")
+
+    parser.add_argument("-o","--output",
+                        type=str,
+                        help="output filename, if not given input file's name will be used with bin extension.")
+    return parser.parse_args()
 
 if __name__ == "__main__":
-    sys.setrecursionlimit(12000)
-    filename = sys.argv[1]
-    sheet = sys.argv[2]
-    cell = sys.argv[3]
-    w = load_workbook(filename)
-    w.active = w.get_sheet_names().index(sheet)
-    print(ExpressionTreeBuilder.evaluate_cell(w, sheet, cell))
-    #print(ExpressionEvaluator.evaluate_cell(w, sheet, cell))
-
+    args = parse_args()
+    cm = create_cellmap(args.filename, {})
+    if args.output:
+        output = args.output
+    output = output_extn(os.path.basename(args.filename))
+    with open(output, "wb") as o:
+        pickle.dump(cm, o)
+    

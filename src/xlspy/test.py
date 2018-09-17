@@ -57,30 +57,11 @@ def test_ExpressionTreeBuilder():
 def workbook():
     w = load_workbook("sample.xlsx")
     yield w
-
-"""
-def test_expand(workbook):
-    e = xlp.ExpressionTreeBuilder(workbook)
-    assert xlp.expand(()) == ()
-    assert xlp.expand(("*", 1, 2)) == ("*", 1, 2)
-    assert xlp.expand((1,2,3,4)) == (1,2,3,4)
-    assert xlp.expand(("*", 1, ("+", 1, 2))) == ("*", 1, ("+", 1, 2))
-    assert xlp.expand(("SUM", 1,2,3,("*",1,2))) == ("SUM", 1,2,3,("*",1,2))
-    def two():
-        return 2
-    assert xlp.expand(("*", two, two)) == ("*" , 2, 2)
-    assert xlp.expand(e.parse("=SUM(A2:A6)")) == ("SUM",(("CELL","Sheet1!A2"),),(("CELL","Sheet1!A3"),),(("CELL","Sheet1!A4"),),(("CELL","Sheet1!A5"),),(("CELL","Sheet1!A6"),))
-    assert xlp.expand(("*", 1, ("+" , 2, lambda: 3))) == ("*", 1, ("+", 2, 3))
-"""
-
-def test_is_expanded():
-    assert xlp.is_expanded(("*", 1, 1))
-    assert xlp.is_expanded(("*", lambda : 2, lambda: 3)) == False
-    assert xlp.is_expanded(("*", 1, ("+" , 2, lambda: 3))) == False
     
 def test_excel(workbook):
     e = xlp.ExpressionTreeBuilder(workbook)
     assert e.parse("=SUM(A2:A6)") == ("SUM",[[("CELL","Sheet1!A2")],[("CELL","Sheet1!A3")],[("CELL","Sheet1!A4")],[("CELL","Sheet1!A5")],[("CELL","Sheet1!A6")]])
     assert e.parse("=SUM(B2:C3)") ==  ("SUM" , [[("CELL", "Sheet1!B2"),("CELL","Sheet1!C2")],[("CELL", "Sheet1!B3"), ("CELL", "Sheet1!C3")]])
-    
+
+
 

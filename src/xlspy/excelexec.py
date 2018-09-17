@@ -1,54 +1,22 @@
-import excelparser as xlp
-from openpyxl import load_workbook
 import tree_evaluator
 import sys
-import yaml
 import networkx as nx
 from networkx.algorithms.traversal.depth_first_search import dfs_postorder_nodes
+from networkx.algorithms.cycles import find_cycle
+from networkx.exception import NetworkXNoCycle
 import collections
 from debug import debug
-
-
-
-def create_cellmap(filename, inputs):
-    w = load_workbook(filename=filename)
-    cellmap = {}
-    #graph = nx.DiGraph()
-    
-    et = xlp.ExpressionTreeBuilder(w)
-    
-    
-    #put named ranges in cellmap
-    for r in w.get_named_ranges():
-        try:
-            e = et.parse("="+r.attr_text)
-            cellmap[r.name] = e
-            #update_graph(graph, r.name, e) 
-        except Exception as e:
-            print("Skipping ", r.name , e)
-
-    #put every cell in cellmap
-    for i,name in enumerate(w.get_sheet_names()):
-        w.active = i
-        sheet = w[name]
-        for col in sheet:
-            for c in col:
-                cellid = "!".join([name, c.coordinate])
-                if c.value==None:
-                    pass
-                else:
-                    if c.data_type == c.TYPE_FORMULA:
-                        e = et.parse(c.value)
-                        cellmap[cellid] = e
-                        #update_graph(graph,cellid, e)
-                    else:
-                        cellmap[cellid] = c.value
-                        
-    cellmap.update(inputs)
-    return cellmap
-
+import argparse
+import yaml, pickle
+from excelfunctions import excelrange
+import importlib
 
 def cells(lispexpression):
+    """
+    This function finds cells on which this lisp expression depends.
+    e = ("*" , ("CELL", "A1"), ("+" , ("CELL", "A2"), ("CELL", "A3")))
+    expression e depends on A1, A2 and A3.
+    """
     if isinstance(lispexpression, tuple):
         if lispexpression[0]=="CELL":
             yield lispexpression[1]
@@ -73,7 +41,7 @@ def update_graph(G, parent, lispexpression):
     
 def update_cellmap(cells, cellmap):
     """
-    evaluate every cell in cells and update cellmap
+    evaluate every cell from list of cells and update cellmap
     """
     count = 0
     for cellid in cells:
@@ -86,10 +54,17 @@ def update_cellmap(cells, cellmap):
                 count += 1
             except ZeroDivisionError as z:
                 #print(cellid, z, cellmap[cellid])
-                cellmap[cellid] = 0
+                cellmap[cellid] = None
             except Exception as ex:
                 print(cellid, c)
+                print(cellmap['Tariff!C18'])
                 raise ex
+        elif isinstance(c,(int,float,str)):
+            pass
+        else:
+            pass
+            #print(cellid, c)
+            
     return count
  
 def print_dict(d):
@@ -121,41 +96,93 @@ def test_build_graph():
     assert set(g.successors("B1")) == {"A1","A2"}
     assert set(g.successors("C1")) == {"B1"}
     assert set(g.successors("E1")) == {"C1","D1"}    
-    
-def evaluate_cell(cellid, cellmap, graph):
-    cells =  dfs_postorder_nodes(graph, cellid)
-    update_cellmap(cells, cellmap)
+
+def handle_cycles(cellid,cells, cycle):
+    #indices = [cells.index(c[0]) for c in cycle]
+    #for i,c in zip(reversed(indices), cycle):
+    #    cells[i] = c
+    return cells
+
+def find_cycle_(graph, cellid):
+    try:
+        cycle = [c[0] for c in find_cycle(graph, cellid)]
+    except NetworkXNoCycle as nc:
+        cycle = []
+    return cycle
+
+def evaluate_cell(cellid, cellmap):
+    if not isinstance(cellmap[cellid], tuple):
+        return cellmap[cellid]
+    graph = build_graph(cellmap)
+    cells =  list(dfs_postorder_nodes(graph, cellid))
+    cycle = find_cycle_(graph, cellid)
+
+    count = 10
+    while count>0:
+        index = min([cells.index(c) for c in cycle] or [0])
+        update_cellmap(cells[:index], cellmap)
+        for c in cycle:
+            update_cellmap(reversed(cycle), cellmap)
+        update_cellmap(cells[index:], cellmap)
+        graph = build_graph(cellmap)
+        cycle = find_cycle_(graph, cellid)
+        if not cycle:
+            break
+        count -= 1
     return cellmap[cellid]
 
-
 def test_exec_excel():
+    from excelparser import create_cellmap
     filename = "sample.xlsx"
     accuracy = 0.0001
     cellmap = create_cellmap(filename, {})
-    g = build_graph(cellmap)
-    assert abs(evaluate_cell("Sheet1!C5", cellmap, g) - 1.417)<=accuracy
-    assert abs(evaluate_cell("Sheet1!C2", cellmap, g) - 0.96)<=accuracy
-    assert abs(evaluate_cell( "Sheet1!C3", cellmap, g) - 1.25)<=accuracy
-    assert abs(evaluate_cell("Sheet1!C4", cellmap, g) - 3.34)<=accuracy
-    assert evaluate_cell("Sheet1!C6", cellmap, g) == 1
+    assert abs(evaluate_cell("Sheet1!C5", cellmap) - 1.417)<=accuracy
+    assert abs(evaluate_cell("Sheet1!C2", cellmap) - 0.96)<=accuracy
+    assert abs(evaluate_cell( "Sheet1!C3", cellmap) - 1.25)<=accuracy
+    assert abs(evaluate_cell("Sheet1!C4", cellmap) - 3.34)<=accuracy
+    assert evaluate_cell("Sheet1!C6", cellmap) == 1
 
 
+def parse_args():
+    parser = argparse.ArgumentParser("Excelsheet execution utility")
+    parser.add_argument("exceldata",
+                        type=str,
+                        help="excel data generated from excelparser.py")
+
+    parser.add_argument("inputs",
+                        type=str,
+                        help="inputs filename, inputs file should be in yaml format")
+    return parser.parse_args()
+    
+
+def handle_macro(cm, inputs):
+    if "macro" not in inputs:
+        return
+    input_cells = inputs['input_cells']
+    print(input_cells)
+    macro = inputs['macro']
+    module = importlib.import_module(macro['module'])
+    func = getattr(module, macro["function"])
+    args = {}
+    for k,v in macro['args'].items():
+        args[k] = input_cells[v]
+    func(cm, **args)
+    
+    
 if __name__ == "__main__":
-    #sys.setrecursionlimit(15000)
-    filename = sys.argv[1]
-    cellid = sys.argv[2]
-    inputs = {'Inputs&Summary!D15':"Andhra Pradesh"}
-    outputs = [c+str(i) for i in range(8, 3, -1) for c in ["J","K","L","M"]]
-    outputs = ["Inputs&Summary!"+c for c in outputs]
-    outputs.reverse()
-    cellmap = create_cellmap(filename, inputs)
+    args = parse_args()
 
+    with open(args.exceldata, "rb") as e:
+        cellmap = pickle.load(e)
 
-    #cellmap = yaml.load(open("cellmap.yaml"))
-    g = build_graph(cellmap)
+    with open(args.inputs) as inp:
+        inputs = yaml.load(inp)
+    handle_macro(cellmap, inputs)
+    outputs = excelrange(inputs['output'])
 
-    for o in outputs+outputs:
-        print(evaluate_cell(o, cellmap, g))
+    for row in outputs:
+        for o in row:
+            print(o,evaluate_cell(o, cellmap))
         
     """
     with open("cellmap2.yaml", "w") as f:
