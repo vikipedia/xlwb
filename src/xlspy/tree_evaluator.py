@@ -48,7 +48,7 @@ def IF(inp, *args):
             return False
     else:
         if evaluate(args[0], inp):
-            return evaluate(args[1], inp) 
+            return evaluate(args[1], inp)
         else:
             return evaluate(args[2], inp)
 
@@ -91,7 +91,7 @@ def evaluate(node, inputvalues):
         return [evaluate(item, inputvalues) for item in node]
     elif isinstance(node, str): # these are cellids or literal strings
         if "!" in node:
-            default = 0
+            default = None
         else:
             default = node
         return inputvalues.get(node, default)#to handle invalid cells

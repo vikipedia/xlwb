@@ -17,7 +17,7 @@ def excelrange(range_):
     def cell(c,r):
         return "!".join([sheet, indtocol(c)+ str(r)])
     if ":" not in range_:
-        return [range_]    
+        return [[range_]]    
     sheet, r = range_.split("!")
     start,end = r.split(":")
     sc,sr = extract_column_row(start)
@@ -30,6 +30,7 @@ def test_excelrange():
     assert excelrange("S!A1:A3") == [["S!A1"], ["S!A2"], ["S!A3"]]
     assert excelrange("S!A1:C1") == [["S!A1",  "S!B1", "S!C1"]]
     assert excelrange("S!A1:B2") == [["S!A1",  "S!B1"],["S!A2","S!B2"]]
+    assert excelrange("S!A1") == [["S!A1"]]
     
 
 def updateformula(formula, data):
@@ -83,6 +84,10 @@ def test_copypaste():
     assert cm["S!B1"] == 10
     assert cm["S!B2"] == ("+", ("CELL", "S!B1"),2)
     assert cm["S!B3"] == ("CELL","S!C1")
+    cm = {"S!A1":10,"S!A2":("+", ("CELL", "S!A1"),2),"S!A3":("CELL", "S!C1"),
+          "S!B1":20,"S!B2":0, "S!B3":0}
+    copypaste(cm, "S!A1", "S!B3")
+    assert cm['S!B3'] == 10
     
 def print_table(table):
     vwrap()
@@ -134,7 +139,7 @@ def npv(*args):
     try:
         return sum([float_(x)*(1+discount_rate)**-(i+1) for (i,x) in enumerate(cashflow)])
     except TypeError as t:
-        print([type(i) for i in args], args)
+        print("NPV", [type(i) for i in args], args)
 
 def test_npv():
     assert npv(10, range(10)) == numpy.npv(10, range(10))
@@ -152,7 +157,7 @@ def flatten(lists):
             l.append(item)
     return l
 
-@numba.jit
+
 def float_(x):
     if not x : return 0
     if x == "-" : return 0
@@ -161,7 +166,7 @@ def float_(x):
 def numeric(l):
     return [i or 0 for i in l]
 
-@trace
+
 def SUM(*args):
     return math.fsum(numeric(flatten(flatten(args))))
   
@@ -219,11 +224,22 @@ def test_VLOOKUP():
     assert VLOOKUP("*p.l?", data, 2, False) == 4
         
 def AVERAGE(*args):
-    a = numeric(flatten(flatten(args)))
-    return SUM(a)/len(a)
+    a = flatten(flatten(args))
+    na = [item for item in a if isinstance(item,(float,int))]
+    l = len(na)
+
+    if not l: return 0
+    return SUM(na)/l
+
+def test_AVERAGE():
+    assert AVERAGE([1,1,1,1,1])==1
+    assert AVERAGE([1,1,0,0])==0.5
+    assert AVERAGE([0,0,0,0])==0
+    assert AVERAGE([1, 1, "-"])==1
+    assert AVERAGE([1, 1, 1, None])==1
 
 def COUNTIF(array, condition):
-    a = flatten(flatten(array))
+    array = flatten(flatten(array))
     if isinstance(condition, (int, float)):
         return array.count(condition)
     elif condition.startswith(">="):
@@ -233,7 +249,13 @@ def COUNTIF(array, condition):
     elif condition.startswith(">"):
         return len([x for x in array if x > float(condition[1:])])
     elif condition.startswith("<>"):
-        return len([x for x in array if str(x)!=condition[2:]])
+        try:
+            cond = int(condition[2:])
+        except:
+            return len([x for x in array if str(x)!=condition[2:]])
+        else:
+            return len([x for x in array if str(int(x))!=condition[2:]])
+
     elif condition.startswith("<"):
         return len([x for x in array if x < float(condition[1:])])
     elif "*" in condition or "?" in condition:
@@ -253,6 +275,11 @@ def test_COUNTIF():
     assert COUNTIF(value, ">=40") == 5
     assert COUNTIF(value, 40) == 3
     assert COUNTIF(value, "<>40") == 5
+    value = [10,20,30,40,50,40,40,50, 0.0, 0.0, 0.0]
+    assert COUNTIF(value, "<>0") == 8
+    
+
+
     
 def AND(*args):
     return functools.reduce(operator.and_, args, True)
@@ -415,7 +442,15 @@ def IF(*args):
     else:
         return bool(args[0])
 
-    
+def MAX(*args):
+    a = flatten(flatten(args))
+    return max([x for x in a if isinstance(x, (int, float))])
+
+def MIN(*args):
+    a = flatten(flatten(args))
+    return min([x for x in a if isinstance(x, (int, float))])
+
+
 functionsmap ={
     "*":lambda x,y:float_(x) * float_(y),
     "/":lambda x,y:x/y,
@@ -427,6 +462,7 @@ functionsmap ={
     ">":lambda x,y:float_(x)>float_(y),
     ">=":lambda x,y:float_(x)>=float_(y),
     "=":lambda x,y: x==y,
+    "<>":lambda x,y: x!=y,
     "^":lambda x,y: float_(x) ** int(float_(y)),
     "CELL":lambda x: x,
     "SUM": SUM,
@@ -444,8 +480,8 @@ functionsmap ={
     "IPMT":numpy.ipmt,
     "ISNUMBER":lambda x: isinstance(x, (int, float)),
     "MATCH":MATCH,
-    "MAX":lambda *args: max(*numeric(flatten(flatten(args)))),
-    "MIN":lambda *args: min(*numeric(flatten(flatten(args)))),
+    "MAX":MAX,
+    "MIN":MIN,
     "MOD":lambda x,y: x%y,
     "OFFSET":OFFSET,
     "ROUNDUP":ROUNDUP,

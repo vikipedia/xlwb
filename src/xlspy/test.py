@@ -34,10 +34,13 @@ def test_ExpressionEvaluator():
     assert e.parse("=-3") == -3
     assert e.parse("=-SUM(1,2)") == -3
     assert e.parse("=2=2") == True
+    assert e.parse("=2<>2") == False
+    assert e.parse("=2<>3") == True
     assert e.parse("=3>2") == True
     assert e.parse("=-3>2") == False
     assert e.parse("=2<2+1") == True
     assert e.parse("=2--3") == 5
+    assert e.parse("=6/2/2/2") == 0.75
 
     
 def test_ExpressionTreeBuilder():

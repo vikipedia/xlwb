@@ -1,15 +1,16 @@
 from excelfunctions import indtocol, copypaste, excelrange, columnind, flatten
 from excelexec import evaluate_cell
 
-def UpdateWCapitalRequirement(cm):
+def UpdateWCapitalRequirement(cm, graph, w):
+
     for i in range(1, 36):
         TarrifDiff = 100
 
         while TarrifDiff > 0.02:
             wcaps = "W Capital!{}15".format(indtocol(i+2))
-            AssumedTarrif = evaluate_cell(wcaps, cm)
+            AssumedTarrif = evaluate_cell(wcaps, cm, graph, w)
             tarrif = "Tariff!{}43".format(indtocol(i+2))
-            Tarrif = evaluate_cell(tarrif, cm)
+            Tarrif = evaluate_cell(tarrif, cm, graph, w)
             if not isinstance(Tarrif, (float,int)):
                 Tarrif = AssumedTarrif
             TarrifDiff = abs(Tarrif - AssumedTarrif)
@@ -45,7 +46,7 @@ def RecallStoredInputs(cm, technology, state):
     copypaste(cm,source, target)
 
     #FiTIP
-    target = "Inputs&Summary!D!100"
+    target = "Inputs&Summary!D100"
     techs = [cm[cell] for cell in excelrange("Inputs-REC!D36:K36")[0]]
     states = [cm[cell] for cell in flatten(excelrange("Inputs-REC!C37:C55"))]
     col = techs.index(technology) + 4
@@ -54,6 +55,7 @@ def RecallStoredInputs(cm, technology, state):
     source ="Inputs-REC!{col}{row}".format(col=indtocol(col), row=row)
     if source not in cm or cm[source]==None:
         source = "Inputs-REC!{col}37".format(col=indtocol(col))
+    f = lambda x: print(x, cm[x])
     copypaste(cm, source, target)
 
     
@@ -65,13 +67,17 @@ def RecallStoredInputs(cm, technology, state):
     copypaste(cm, source, target)
 
     
-def HandleTechOrStateChange(data, technology="Solar PV", state="CERC"):
+def HandleTechOrStateChange(data, graph,w=None, technology="Solar PV", state="CERC"):
     s = "Inputs&Summary!D15"
     t = "Inputs&Summary!D16"
     if True or data[s] != state or data[t]!=technology:
         data[s] = state
         data[t] = technology
         RecallStoredInputs(data, technology, state)
-        UpdateWCapitalRequirement(data)
+        if technology not in ["Biogass", "Bagasse", "Biomass Gasifier", "Biomass Rankine Cycle"]:
+            data['Inputs&Summary!D94'] = 0
+        
+    UpdateWCapitalRequirement(data, graph, w)
+
 
 

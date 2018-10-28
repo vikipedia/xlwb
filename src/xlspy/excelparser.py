@@ -43,7 +43,7 @@ def pretty_print(tree):
     print_(tree, 0)
 
 
-#@debugmethods
+
 class ExpressionEvaluator:
 
     def __init__(self, workbook=None):
@@ -83,9 +83,9 @@ class ExpressionEvaluator:
 
     # Grammar rules follow
     def expr(self):
-        "expression ::= expr { ('='|'<'|'>'|'<='|'>=') expr }*"
+        "expression ::= expr { ('='|'<'|'>'|'<='|'>=' | '<>' ) expr }*"
         exprval = self.strexpr() 
-        assert_ = lambda :self.nexttok.value in ["=",">","<","<=",">="]
+        assert_ = lambda :self.nexttok.value in ["=",">","<","<=",">=", "<>"]
 
         while self._accept('OPERATOR-INFIX',assert_):
             op = self.tok.value
@@ -309,9 +309,10 @@ class ExpressionEvaluator:
         self._expect("FUNC", assert_C)
 
         try:
-            r = OFFSET(ref, *[tree_evaluator.evaluate(a, {}) for a in args])
+            args = [tree_evaluator.evaluate(a, {}) for a in args]
+            r = OFFSET(ref, *args)
         except Exception as e:
-            print("OFFSET Failure!", e)
+            print("OFFSET Failure!", ref, args)
             return None
         return self.range(r)
         
@@ -331,25 +332,6 @@ class ExpressionEvaluator:
             args.append(self.expr())
         self._expect("FUNC", assert_C)
         return self.create_node(funcname, *args)
-
-    @classmethod
-    def evaluate_cell(cls, workbook, sheet, cell):
-        
-        e = cls(workbook)
-        s = workbook[sheet]
-        c = s[cell]
-        active_ = workbook.active
-        s.active = workbook.get_sheet_names().index(sheet)
-        
-        tree =  e.parse(c.value)
-
-        while not is_expanded(tree):
-            print(tree)
-            x = input()
-            tree = expand(tree)
-
-        s.active = workbook.get_sheet_names().index(active_.title)
-        return tree
 
    
 class ExpressionTreeBuilder(ExpressionEvaluator):
@@ -416,12 +398,17 @@ def parse_args():
                         help="output filename, if not given input file's name will be used with bin extension.")
     return parser.parse_args()
 
-if __name__ == "__main__":
-    args = parse_args()
-    cm = create_cellmap(args.filename, {})
-    if args.output:
-        output = args.output
-    output = output_extn(os.path.basename(args.filename))
+
+def main(filename, output=None):
+    if not output:
+        output = output_extn(os.path.basename(filename))
+    cm = create_cellmap(filename, {})
+    
     with open(output, "wb") as o:
         pickle.dump(cm, o)
+        
+
+if __name__ == "__main__":
+    args = parse_args()
+    main(args.filename, args.output)
     
