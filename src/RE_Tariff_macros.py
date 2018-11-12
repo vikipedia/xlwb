@@ -1,22 +1,48 @@
-from excelfunctions import indtocol, copypaste, excelrange, columnind, flatten
-from excelexec import evaluate_cell
+from xlwb.xlspy.excelfunctions import indtocol, copypaste, excelrange, columnind, flatten
+from xlwb.xlspy.excelexec import evaluate_cell, build_graph, update_graph
+from xlwb.xlspy.excelexec import dfs_postorder_nodes
+
+
+def copy_dependency(cellid, cm, graph):
+    cells = dfs_postorder_nodes(graph, cellid)
+    return {c:cm[c] for c in cells if c in cm}
+
+
+def copy_formulas(src, dest):
+    x = {c:src[c] for c in src if isinstance(src[c], tuple)}
+    dest.update(x)
+
 
 def UpdateWCapitalRequirement(cm, graph, w):
 
     for i in range(1, 36):
-        TarrifDiff = 100
+        TariffDiff = 100
+        wcaps = "W Capital!{}15".format(indtocol(i+2))
+        tariff = "Tariff!{}43".format(indtocol(i+2))
+        cm_ = copy_dependency(tariff, cm , graph)
+        g = build_graph(cm_)
+        _cm = dict(cm_)
+        
+        AssumedTariff = evaluate_cell(wcaps, _cm, g, w)#this has only values
+        
+        while TariffDiff > 0.02:
+            copy_formulas(cm_, _cm)
+             # make use of formulas to compute, do not change
+                            # Do not replace formula with value
+            
+            Tariff = evaluate_cell(tariff, _cm, g, w)
+            while isinstance(Tariff, tuple):
+                Tariff = evaluate_cell(tariff, _cm, g, w)                
 
-        while TarrifDiff > 0.02:
-            wcaps = "W Capital!{}15".format(indtocol(i+2))
-            AssumedTarrif = evaluate_cell(wcaps, cm, graph, w)
-            tarrif = "Tariff!{}43".format(indtocol(i+2))
-            Tarrif = evaluate_cell(tarrif, cm, graph, w)
-            if not isinstance(Tarrif, (float,int)):
-                Tarrif = AssumedTarrif
-            TarrifDiff = abs(Tarrif - AssumedTarrif)
-            AssumedTarrif = round(Tarrif, 2)
-            cm[wcaps] = AssumedTarrif
-
+            if not isinstance(Tariff, (float,int)):
+                Tariff = AssumedTariff
+            TariffDiff = abs(Tariff - AssumedTariff)
+            AssumedTariff = round(Tariff, 2)
+            
+            _cm[wcaps] = AssumedTariff
+            
+        cm.update(_cm)
+ 
     
 def gettechrow(cm, range_):
     """
@@ -30,11 +56,13 @@ def gettechrow(cm, range_):
 def RecallStoredInputs(cm, technology, state):
     techheaders = gettechrow(cm, "Inputs!E1:Z1")
     col = techheaders.index(technology) + 5
+
     row = 73
     s = "Inputs!{col}{startrow}:{endcol}{row}".format(col=indtocol(col),
                                                       startrow=2,
                                                       endcol=indtocol(col+1),
                                                       row=row)
+
     target = "Inputs&Summary!D32:E103"
     copypaste(cm, s, target)
 
@@ -78,6 +106,12 @@ def HandleTechOrStateChange(data, graph,w=None, technology="Solar PV", state="CE
             data['Inputs&Summary!D94'] = 0
         
     UpdateWCapitalRequirement(data, graph, w)
+
+    # above macro might have changed some formulas, copy-paste e.g. changes
+    # dependencies
+    graph.clear()
+    for k,v in data.items():
+        update_graph(graph, k, v)
 
 
 

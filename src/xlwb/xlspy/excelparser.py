@@ -5,10 +5,8 @@ import functools
 import operator
 from openpyxl import load_workbook
 from openpyxl.formula import Tokenizer
-from excelfunctions import functionsmap, OFFSET
-from debug import debugmethods, trace
-from memoize import memoize
-import tree_evaluator
+from xlwb.xlspy.excelfunctions import functionsmap, OFFSET
+from xlwb.xlspy import tree_evaluator
 import pickle
 
 Token = collections.namedtuple("Token",['type','subtype','value'])

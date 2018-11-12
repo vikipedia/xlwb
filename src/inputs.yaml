@@ -1,4 +1,4 @@
-input_cells: {Inputs&Summary!D15: CERC, Inputs&Summary!D16: Solar PV}
+input_cells: {Inputs&Summary!D15: CERC, Inputs&Summary!D16: Small Hydro}
 output: Inputs&Summary!I3:M8
 macro:
   module: RE_Tariff_macros

@@ -1,34 +1,45 @@
 from openpyxl import load_workbook
-import excelexec
-import excelfunctions
-import excelparser
+from xlwb.xlspy import excelexec
+from xlwb.xlspy import excelfunctions
+from xlwb.xlspy import excelparser
 import pytest
-from excelexec import update_cellmap
-from excelfunctions import excelrange, flatten
+from xlwb.xlspy.excelexec import update_cellmap
+from xlwb.xlspy.excelfunctions import excelrange, flatten
 from math import isnan
 
 class ComparisonFailure(Exception):
     pass
+
+
+def handle_uneqal(value):
+    try:
+        if value==None or isnan(value) or  int(value)==0:
+            return False
+        else:
+            return True
+    except ValueError as v:
+        return True
+    
 
 def examine(cellid, cellmap, w):
     """
     A function to do testing. it allows examing computed
     value of given cell with precalculted excel sheet.
     this is most unclean function as it goes thorugh all
-    confilting behaviours of excel about how it treats empty cell or
+    conflicting behaviours of excel about how it treats empty cell or
     how it treats nonexistent references!
     """
     
     ignorelist = []
-    examinlist = ['Fuel!C9', "Inputs&Summary!D94", "Inputs&Summary!D35","Inputs&Summary!D34"]
+    examinlist = [] 
     formula = cellmap.get(cellid, None)
     update_cellmap([cellid], cellmap)
     
     if cellid in ignorelist:
         return
 
-    if cellid in examinlist:
-        print(cellid, formula, cellmap[cellid])
+    #if "Inputs&Summary!D" in cellid:
+    #    return
 
     if not formula:
         #print("ignoring empty cell",cellid)
@@ -39,6 +50,8 @@ def examine(cellid, cellmap, w):
     value = cellmap.get(cellid, None)
     #if wvalue == "#REF!":
         #print(cellid, value, wvalue)
+    if cellid in examinlist:
+        print(cellid, formula, cellmap.get(cellid, None), wvalue)
 
     if isinstance(value, tuple):
         #print("ignoring uncomputed cell", cellid)
@@ -47,12 +60,8 @@ def examine(cellid, cellmap, w):
     
     if isinstance(wvalue, str):
         if value!=wvalue:
-            if wvalue=="#REF!":
-                if value==None or int(value)==0:
-                    error = False
-            elif wvalue == "#VALUE!":
-                if value==None or isnan(value) or  int(value)==0:
-                    error = False
+            if wvalue in ["#REF!", "#VALUE!"]:
+                error = handle_uneqal(value)
             else:
                 error = True
     elif wvalue==None:
@@ -62,7 +71,7 @@ def examine(cellid, cellmap, w):
         if value==None:
             if int(wvalue)==0:
                 error = False
-        elif abs(wvalue-value)>=0.001:
+        elif abs(wvalue-value)>=0.0001:
             error = True
     if error:
         print(cellid, formula, value,"*", wvalue)
@@ -83,12 +92,12 @@ def test_end_to_end(monkeypatch):
     comparison on computed cells
     """
     filename = "RE_Tariff_and_Financial_Analysis_Tool_v2.2-unprotected.xlsm"
-    excelparser.main(filename)
+    #excelparser.main(filename)
 
     exceldata = excelparser.output_extn(filename)
     inputs = "inputs.yaml"
-    
+    filename = "RE_Tariff_and_Financial_Analysis_Tool_v2.2-unprotected-CERC-Solar PV.xlsm"
     w = load_workbook(filename=filename, data_only=True)
     monkeypatch.setattr(excelexec, "update_cellmap", update_cellmap_)
     excelexec.main(exceldata, inputs, w)
-    
+

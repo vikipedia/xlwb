@@ -1,7 +1,7 @@
 
-from excelfunctions import functionsmap
-from memoize import memoize
-from debug import trace
+from xlwb.xlspy.excelfunctions import functionsmap
+from xlwb.xlspy.memoize import memoize
+from xlwb.xlspy.debug import trace
 import pytest
 
 class TreeError(TypeError):

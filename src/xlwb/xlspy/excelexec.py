@@ -1,16 +1,16 @@
-from tree_evaluator import TreeError, evaluate
+from xlwb.xlspy.tree_evaluator import TreeError, evaluate
 import sys
 import networkx as nx
 from networkx.algorithms.traversal.depth_first_search import dfs_postorder_nodes
 from networkx.algorithms.cycles import find_cycle
 from networkx.exception import NetworkXNoCycle
 import collections
-from debug import debug
 import argparse
 import yaml, pickle
-from excelfunctions import excelrange
+from xlwb.xlspy.excelfunctions import excelrange
 import importlib
 from math import isnan
+import numba
 
 def cells(lispexpression):
     """
@@ -33,7 +33,8 @@ def test_cells():
     assert list(cells(e)) == ["A1", "A2", "A3"]
     e = ("*", ("SUM", [[("CELL","A1")],[("CELL","A2")]]), ("CELL", "A3"))
     assert list(cells(e)) == ["A1", "A2", "A3"]
-    
+
+
 def update_graph(G, parent, lispexpression):
     add_node = G.add_node
     add_edge = G.add_edge
@@ -50,6 +51,7 @@ def update_cellmap(cells, cellmap, w=None):
     count = 0
 
     for cellid in cells:
+
         c = cellmap.get(cellid,None)
         if isinstance(c, (tuple,list)):
             try:
@@ -68,7 +70,7 @@ def update_cellmap(cells, cellmap, w=None):
         else:
             pass
             #print(cellid, c)
-            
+        
     return count
  
 def print_dict(d):
@@ -83,7 +85,26 @@ def build_graph(data):
     return g
 
 
-def graphdata():
+def build_graph_(data, source, G=None):
+    """
+    this function builds graph only for given source
+    """
+    if not G:
+        G = nx.DiGraph()
+    add_node = G.add_node
+    add_edge = G.add_edge
+    
+    add_node(source)
+    v = data[source]
+    if isinstance(v, (tuple, list)):
+        for c in cells(v):
+            add_node(c)
+            add_edge(source, c)
+            G = build_graph_(data, c, G)
+    return G
+        
+
+def _graphdata():
     cellmap = {"A1":1,"A2":2,
                "B1":("+", ("+" ,1, ("CELL", "A1")),("CELL", "A2")),
                "C1":("+" ,("CELL","B1"), 1),
@@ -93,8 +114,25 @@ def graphdata():
     return cellmap
     
 def test_build_graph():
-    cellmap = graphdata()
+    cellmap = _graphdata()
     g = build_graph(cellmap)
+    assert sorted(g.nodes()) == sorted(["A1","A2","B1","C1","D1","E1"])
+    assert set(g.edges()) == {('C1', 'B1'), ('B1', 'A1'), ('B1', 'A2'), ('D1', 'C1'),("E1","D1"),("E1","C1")}
+    assert set(g.successors("B1")) == {"A1","A2"}
+    assert set(g.successors("C1")) == {"B1"}
+    assert set(g.successors("E1")) == {"C1","D1"}    
+
+def test_build_graph_():
+    cellmap = _graphdata()
+    g = build_graph_(cellmap, "C1")
+    
+    assert sorted(g.nodes()) == sorted(["A1","A2","B1","C1"])
+    assert set(g.edges()) == {('C1', 'B1'), ('B1', 'A1'), ('B1', 'A2')}
+    assert set(g.successors("B1")) == {"A1","A2"}
+    assert set(g.successors("C1")) == {"B1"}
+
+    cellmap = _graphdata()
+    g = build_graph_(cellmap, "E1")
     assert sorted(g.nodes()) == sorted(["A1","A2","B1","C1","D1","E1"])
     assert set(g.edges()) == {('C1', 'B1'), ('B1', 'A1'), ('B1', 'A2'), ('D1', 'C1'),("E1","D1"),("E1","C1")}
     assert set(g.successors("B1")) == {"A1","A2"}
@@ -116,14 +154,15 @@ def evaluate_cell(cellid, cellmap, graph, w=None):
     cells =  list(dfs_postorder_nodes(graph, cellid))
     cycle = find_cycle_(graph, cellid)
 
-    count = 5
+    count = 8
     while count>0:
         index = min([cells.index(c) for c in cycle] or [0])
         update_cellmap(cells[:index], cellmap, w)
         for c in cycle:
-            update_cellmap(reversed(cycle), cellmap, w)
+            update_cellmap(cycle, cellmap, w)
         update_cellmap(cells[index:], cellmap, w)
         cycle = find_cycle_(graph, cellid)
+        #print(cycle)
         if not cycle:
             break
         if sum([1 for c in cycle if isinstance(cellmap[c], tuple)])==0:
@@ -134,7 +173,7 @@ def evaluate_cell(cellid, cellmap, graph, w=None):
     return cellmap[cellid]
 
 def test_exec_excel():
-    from excelparser import create_cellmap
+    from xlwb.xlspy.excelparser import create_cellmap
     filename = "sample.xlsx"
     accuracy = 0.0001
     cellmap = create_cellmap(filename, {})
@@ -162,6 +201,7 @@ def handle_macro(cm, inputs, graph, w=None):
     for k,v in macro['args'].items():
         args[k] = input_cells[v]
     func(cm, graph, w, **args)
+    
 
 def parse_args():
     parser = argparse.ArgumentParser("Excelsheet execution utility")
@@ -184,11 +224,17 @@ def main(exceldata, inputs, w=None):
 
     graph = build_graph(cellmap)
     handle_macro(cellmap, inputs, graph, w)
+
     outputs = excelrange(inputs['output'])
 
     for row in outputs:
         for o in row:
-            print(o,evaluate_cell(o, cellmap, graph, w))
+            v = evaluate_cell(o, cellmap, graph, w)
+            
+            if isinstance(v, float):
+                print("{0} {1:4.4f}".format(o,v))
+            else:
+                print(o, v)
         
 
 if __name__ == "__main__":
