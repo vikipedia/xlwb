@@ -91,12 +91,12 @@ def test_end_to_end(monkeypatch):
     test makes use of cached data saved by excel to check cell by cell 
     comparison on computed cells
     """
-    filename = "RE_Tariff_and_Financial_Analysis_Tool_v2.2-unprotected.xlsm"
+    filename = "RE_Tariff_and_Financial_Analysis_Tool_v2.2-unprotected-CERC-Solar PV.xlsm"
     #excelparser.main(filename)
 
     exceldata = excelparser.output_extn(filename)
     inputs = "inputs.yaml"
-    filename = "RE_Tariff_and_Financial_Analysis_Tool_v2.2-unprotected-CERC-Solar PV.xlsm"
+    filename = "RE_Tariff_and_Financial_Analysis_Tool_v2.2-unprotected.xlsm"
     w = load_workbook(filename=filename, data_only=True)
     monkeypatch.setattr(excelexec, "update_cellmap", update_cellmap_)
     excelexec.main(exceldata, inputs, w)

@@ -28,7 +28,7 @@ def UpdateWCapitalRequirement(cm, graph, w):
         while TariffDiff > 0.02:
             copy_formulas(cm_, _cm)
              # make use of formulas to compute, do not change
-                            # Do not replace formula with value
+             # Do not replace formula with value
             
             Tariff = evaluate_cell(tariff, _cm, g, w)
             while isinstance(Tariff, tuple):
@@ -40,7 +40,7 @@ def UpdateWCapitalRequirement(cm, graph, w):
             AssumedTariff = round(Tariff, 2)
             
             _cm[wcaps] = AssumedTariff
-            
+
         cm.update(_cm)
  
     
@@ -95,23 +95,16 @@ def RecallStoredInputs(cm, technology, state):
     copypaste(cm, source, target)
 
     
-def HandleTechOrStateChange(data, graph,w=None, technology="Solar PV", state="CERC"):
-    s = "Inputs&Summary!D15"
-    t = "Inputs&Summary!D16"
-    if True or data[s] != state or data[t]!=technology:
-        data[s] = state
-        data[t] = technology
-        RecallStoredInputs(data, technology, state)
-        if technology not in ["Biogass", "Bagasse", "Biomass Gasifier", "Biomass Rankine Cycle"]:
-            data['Inputs&Summary!D94'] = 0
+def HandleTechOrStateChange(data,w=None, **kwargs):
+    for item, value in kwargs.items():
+        data[item] = value
+    technology = data['Inputs&Summary!D16']
+    state = data['Inputs&Summary!D15']
+    RecallStoredInputs(data, technology, state)
+    graph = build_graph(data)
+    if technology not in ["Biogass", "Bagasse", "Biomass Gasifier", "Biomass Rankine Cycle"]:
+        data['Inputs&Summary!D94'] = 0
         
     UpdateWCapitalRequirement(data, graph, w)
-
-    # above macro might have changed some formulas, copy-paste e.g. changes
-    # dependencies
-    graph.clear()
-    for k,v in data.items():
-        update_graph(graph, k, v)
-
 
 

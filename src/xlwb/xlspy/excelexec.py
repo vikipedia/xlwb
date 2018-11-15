@@ -10,7 +10,7 @@ import yaml, pickle
 from xlwb.xlspy.excelfunctions import excelrange
 import importlib
 from math import isnan
-import numba
+
 
 def cells(lispexpression):
     """
@@ -184,10 +184,11 @@ def test_exec_excel():
     assert abs(evaluate_cell("Sheet1!C4", cellmap, graph) - 3.34)<=accuracy
     assert evaluate_cell("Sheet1!C6", cellmap, graph) == 1    
 
-def handle_macro(cm, inputs, graph, w=None):
+def handle_macro(cm, inputs, w=None):
     """
     w is precalcuted sheet by excel for testing purpose only
     """
+    
     if "macro" not in inputs:
         return
     input_cells = inputs['input_cells']
@@ -197,10 +198,8 @@ def handle_macro(cm, inputs, graph, w=None):
     macro = inputs['macro']
     module = importlib.import_module(macro['module'])
     func = getattr(module, macro["function"])
-    args = {}
-    for k,v in macro['args'].items():
-        args[k] = input_cells[v]
-    func(cm, graph, w, **args)
+    args = {item:input_cells[item] for item in macro['args'] if item in input_cells}
+    func(cm, w, **args)
     
 
 def parse_args():
@@ -216,27 +215,41 @@ def parse_args():
     
 
 
+def compute(cellmap, inputs, w=None):
+    handle_macro(cellmap, inputs, w)
+    graph = build_graph(cellmap)
+    
+    outputs = excelrange(inputs['output'])
+
+    for row in outputs:
+        for o in row:
+            v = evaluate_cell(o, cellmap, graph, w)
+
+def print_results(outputs, cellmap):
+
+    for row in outputs:
+        for o in row:
+            v = cellmap[o]
+
+            if isinstance(v, float):
+                print("{0} {1:4.4f}".format(o,v))
+            else:
+                print(o, v)
+    
+
+
+
 def main(exceldata, inputs, w=None):
     with open(exceldata, "rb") as e:
         cellmap = pickle.load(e)
     with open(inputs) as inp:
         inputs = yaml.load(inp)
 
-    graph = build_graph(cellmap)
-    handle_macro(cellmap, inputs, graph, w)
-
+    compute(cellmap, inputs, w)    
     outputs = excelrange(inputs['output'])
-
-    for row in outputs:
-        for o in row:
-            v = evaluate_cell(o, cellmap, graph, w)
-            
-            if isinstance(v, float):
-                print("{0} {1:4.4f}".format(o,v))
-            else:
-                print(o, v)
-        
-
+    print_results(outputs, cellmap)
+    
+    
 if __name__ == "__main__":
     args = parse_args()
     main(args.exceldata, args.inputs)

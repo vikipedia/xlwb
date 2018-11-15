@@ -1,0 +1,45 @@
+input_cells:
+  Inputs&Summary!D14:
+    name: start_year
+    description: Inputs&Summary!C14
+    type: int
+    ui: int
+    min: 2000
+    max: 2050
+    value: Inputs&Summary!D14
+  Inputs&Summary!D15:
+    name: state
+    description: Inputs&Summary!C15
+    type: text
+    ui: menu
+    menudata: ["CERC","Maharashtra","Andhra Pradesh"]
+    value: Inputs&Summary!D15
+  Inputs&Summary!D16:
+    name: technology
+    description: Inputs&Summary!C16
+    type: text
+    ui: menu
+    menudata: ['Solar PV','Solar Thermal','Wind','Small Hydro',"Biogas","Bagasse","Biomass Gasifier","Biomass Rankine Cycle","Off-grid Solar PV","Off-grid Small Hydro","Off-grid Biomass Gasifier"]
+    value: Inputs&Summary!D16
+  Inputs&Summary!D17:
+    name: location
+    description: Inputs&Summary!C17
+    type: text
+    ui: menu
+    menudata: ["Hilly, Tribal, Desert","Moderate Remote","Normal Terrain"]
+    value: Inputs&Summary!D17
+  Inputs&Summary!D18:
+    name: density
+    description: Inputs&Summary!C18
+    type: text
+    ui: menu
+    menudata: ["Highly Scattered","Medium Scattered","Less Scattered"]
+    value: Inputs&Summary!D18
+
+all_inputs: []
+output: 'Inputs&Summary!I3:M8'
+exceldata: RE_Tariff_and_Financial_Analysis_Tool_v2.2-unprotected.bin
+macro:
+  module: RE_Tariff_macros
+  function: HandleTechOrStateChange
+  args: [Inputs&Summary!D14,Inputs&Summary!D15,Inputs&Summary!D16,Inputs&Summary!D17,Inputs&Summary!D18]

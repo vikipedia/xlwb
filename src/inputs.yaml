@@ -1,8 +1,6 @@
-input_cells: {Inputs&Summary!D15: CERC, Inputs&Summary!D16: Small Hydro}
+input_cells: {Inputs&Summary!D15: CERC, Inputs&Summary!D16: Bagasse}
 output: Inputs&Summary!I3:M8
 macro:
   module: RE_Tariff_macros
   function: HandleTechOrStateChange
-  args:
-    state: Inputs&Summary!D15
-    technology: Inputs&Summary!D16
+  args: [Inputs&Summary!D14,Inputs&Summary!D15,Inputs&Summary!D16,Inputs&Summary!D17,Inputs&Summary!D18]
