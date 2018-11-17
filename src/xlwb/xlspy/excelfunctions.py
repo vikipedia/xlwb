@@ -248,11 +248,11 @@ def COUNTIF(array, condition):
         return len([x for x in array if x > float(condition[1:])])
     elif condition.startswith("<>"):
         try:
-            cond = int(condition[2:])
+            cond = float(condition[2:])
         except:
             return len([x for x in array if str(x)!=condition[2:]])
         else:
-            return len([x for x in array if str(int(x))!=condition[2:]])
+            return len([x for x in array if abs(float(x)-float(condition[2:]))>0.0001])
 
     elif condition.startswith("<"):
         return len([x for x in array if x < float(condition[1:])])
@@ -275,6 +275,8 @@ def test_COUNTIF():
     assert COUNTIF(value, "<>40") == 5
     value = [10,20,30,40,50,40,40,50, 0.0, 0.0, 0.0]
     assert COUNTIF(value, "<>0") == 8
+    value = [0.2]*30 + [0.0, 0.0, 0.0]
+    assert COUNTIF(value, "<>0") == 30
     
 
 

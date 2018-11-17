@@ -12,7 +12,7 @@ input_cells:
     description: Inputs&Summary!C15
     type: text
     ui: menu
-    menudata: ["CERC","Maharashtra","Andhra Pradesh"]
+    menudata: ["CERC", "Andhra Pradesh","Bihar","Chhattisgarh","Gujarat","Haryana","Himachal Pradesh","Karnataka","Kerala","Madhya Pradesh","Maharashtra","North Eastern States","Orissa","Punjab","Rajasthan","Tamil Nadu","Uttarakhand","Uttar Pradesh","West Bengal"]
     value: Inputs&Summary!D15
   Inputs&Summary!D16:
     name: technology

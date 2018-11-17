@@ -7,7 +7,7 @@ from networkx.exception import NetworkXNoCycle
 import collections
 import argparse
 import yaml, pickle
-from xlwb.xlspy.excelfunctions import excelrange
+from xlwb.xlspy.excelfunctions import excelrange, flatten
 import importlib
 from math import isnan
 
@@ -55,6 +55,14 @@ def update_cellmap(cells, cellmap, w=None):
         c = cellmap.get(cellid,None)
         if isinstance(c, (tuple,list)):
             try:
+                """
+                if cellid in ["Tariff!C34", "Tariff!C36"]:
+                    try:
+                        v = evaluate(c, cellmap)
+                        print(cellid, c, v)
+                    except Exception as e:
+                        print(cellid, c, v, e)
+                """
                 v = evaluate(c, cellmap)
                 cellmap[cellid] = v
             except TreeError as t:
@@ -70,7 +78,7 @@ def update_cellmap(cells, cellmap, w=None):
         else:
             pass
             #print(cellid, c)
-        
+                
     return count
  
 def print_dict(d):
@@ -200,7 +208,7 @@ def handle_macro(cm, inputs, w=None):
     func = getattr(module, macro["function"])
     args = {item:input_cells[item] for item in macro['args'] if item in input_cells}
     func(cm, w, **args)
-    
+
 
 def parse_args():
     parser = argparse.ArgumentParser("Excelsheet execution utility")
@@ -219,24 +227,29 @@ def compute(cellmap, inputs, w=None):
     handle_macro(cellmap, inputs, w)
     graph = build_graph(cellmap)
     
-    outputs = excelrange(inputs['output'])
+    outputs = get_outputs(inputs['output'])
 
-    for row in outputs:
-        for o in row:
-            v = evaluate_cell(o, cellmap, graph, w)
+    for o in outputs:
+        v = evaluate_cell(o, cellmap, graph, w)
+    
 
 def print_results(outputs, cellmap):
 
-    for row in outputs:
-        for o in row:
-            v = cellmap[o]
+    for o in outputs:
 
-            if isinstance(v, float):
-                print("{0} {1:4.4f}".format(o,v))
-            else:
-                print(o, v)
+        v = cellmap[o]
+
+        if isinstance(v, float):
+            print("{0} {1:4.4f}".format(o,v))
+        else:
+            print(o, v)
     
 
+def get_outputs(outputs):
+    ranges = [excelrange(o) for o in outputs.strip().split(",")]
+    o = [s.strip() for s in flatten(flatten(flatten(ranges)))]
+    return o
+                
 
 
 def main(exceldata, inputs, w=None):
@@ -245,8 +258,9 @@ def main(exceldata, inputs, w=None):
     with open(inputs) as inp:
         inputs = yaml.load(inp)
 
-    compute(cellmap, inputs, w)    
-    outputs = excelrange(inputs['output'])
+    compute(cellmap, inputs, w)
+
+    outputs = get_outputs(inputs['output'])
     print_results(outputs, cellmap)
     
     

@@ -1,10 +1,48 @@
+<html>
+  <head>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+      google.charts.load('current', {'packages':['corechart']});
+      google.charts.setOnLoadCallback(drawChart);
 
-<table>
-  {% for row in output %}
-  <tr>
-    {% for item in row %}
-    <td>{{item}}</td>
-    {% endfor %}
-  </tr>
-  {% endfor %}
-</table>
+      function drawChart() {
+        var data = new google.visualization.DataTable();
+        {%- for type_, column in columns %}
+          data.addColumn('{{ type_ }}', '{{ column }}');
+        {%- endfor %}
+        data.addRows([
+            {%- for x,y,z in data %}
+               ['{{ x }}', {{ y }},  {{ z }}],
+            {%- endfor %}
+        ]);
+        
+
+        var options = {
+          title: 'Tariff Chart',
+          legend: { position: 'top-right' }
+        };
+
+        var chart = new google.visualization.LineChart(document.getElementById('curve_chart'));
+
+        chart.draw(data, options);
+      }
+    </script>
+  </head>
+  <body>
+    <div>
+      <table>
+	{% for row in output %}
+	<tr>
+	  {% for item in row %}
+	  <td>{{item}}</td>
+	  {% endfor %}
+	</tr>
+	{% endfor %}
+      </table>
+    </div>
+    <div id="curve_chart" style="width: 900px; height: 500px"></div>
+  </body>
+
+
+
+</html>

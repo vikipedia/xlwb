@@ -73,6 +73,9 @@ def RecallStoredInputs(cm, technology, state):
     source = "Inputs-REC!D{row}:K{row}".format(row=row)
     copypaste(cm,source, target)
 
+    if "Off-grid" in technology:
+        return
+    
     #FiTIP
     target = "Inputs&Summary!D100"
     techs = [cm[cell] for cell in excelrange("Inputs-REC!D36:K36")[0]]

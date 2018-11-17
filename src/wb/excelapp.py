@@ -4,7 +4,7 @@ from xlwb.xlspy.excelfunctions import excelrange
 from xlwb.xlspy import excelexec
 import forms
 import pickle
-
+import json
 
 app = Flask(__name__)
 app.secret_key = b'\x08\x19\xf3\x0e\xfb\x80\x11\x13\x13\xb8\x82c\x99}\x9e{'
@@ -56,5 +56,13 @@ def compute():
     
         excelexec.compute(exceldata,inputs)
         o = get_range(exceldata,  excelrange(app.conf['output']))
-        return render_template("table.html", output=o)
+        columns = [('string', 'Year'),
+                   ('number', 'Fuel Cost'),
+                   ('number', 'Expenses')]
+        chartdata = [('2004',  1000,      400),
+                     ('2005',  1170,      460),
+                     ('2006',  660,       1120),
+                     ('2007',  1030,      540)]
+
+        return render_template("table.html", output=o, data=chartdata, columns=columns)
 
