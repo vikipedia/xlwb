@@ -1,45 +1,56 @@
+all_inputs: []
+chart:
+   X: 'Tariff!C27:AP27'
+   names: 'Tariff!B49:B55'
+   series: 'Tariff!D49:W55'
+   types: [combo,column] 
+   xcategory: true
+   xname: Year
+   id: tariff
+   combo:
+     names: 'Tariff!B49:B57'
+     series: 'Tariff!D49:W57'
+     options:
+       title: 'Tariff Chart'
+       legend: {position: 'top-right' }
+       seriesType: area
+       isStacked: true
+       series: {7: {type: line, pointSize: 10}, 8: {type: line, pointSize: 10}}
+exceldata: RE_Tariff_and_Financial_Analysis_Tool_v2.2-unprotected.bin
 input_cells:
-  Inputs&Summary!D14:
-    name: start_year
-    description: Inputs&Summary!C14
-    type: int
-    ui: int
-    min: 2000
-    max: 2050
-    value: Inputs&Summary!D14
+  Inputs&Summary!D14: {description: Inputs&Summary!C14, max: 2050, min: 2000, name: start_year,
+    type: int, ui: int, value: Inputs&Summary!D14}
   Inputs&Summary!D15:
-    name: state
     description: Inputs&Summary!C15
+    menudata: Inputs-REC!C4:C22
+    name: state
     type: text
     ui: menu
-    menudata: ["CERC", "Andhra Pradesh","Bihar","Chhattisgarh","Gujarat","Haryana","Himachal Pradesh","Karnataka","Kerala","Madhya Pradesh","Maharashtra","North Eastern States","Orissa","Punjab","Rajasthan","Tamil Nadu","Uttarakhand","Uttar Pradesh","West Bengal"]
     value: Inputs&Summary!D15
   Inputs&Summary!D16:
-    name: technology
     description: Inputs&Summary!C16
+    menudata: Introduction!O25:O35
+    name: technology
     type: text
     ui: menu
-    menudata: ['Solar PV','Solar Thermal','Wind','Small Hydro',"Biogas","Bagasse","Biomass Gasifier","Biomass Rankine Cycle","Off-grid Solar PV","Off-grid Small Hydro","Off-grid Biomass Gasifier"]
     value: Inputs&Summary!D16
   Inputs&Summary!D17:
-    name: location
     description: Inputs&Summary!C17
+    menudata: ['Hilly, Tribal, Desert', Moderate Remote, Normal Terrain]
+    name: location
     type: text
     ui: menu
-    menudata: ["Hilly, Tribal, Desert","Moderate Remote","Normal Terrain"]
     value: Inputs&Summary!D17
   Inputs&Summary!D18:
-    name: density
     description: Inputs&Summary!C18
+    menudata: [Highly Scattered, Medium Scattered, Less Scattered]
+    name: density
     type: text
     ui: menu
-    menudata: ["Highly Scattered","Medium Scattered","Less Scattered"]
     value: Inputs&Summary!D18
-
-all_inputs: []
-output: 'Inputs&Summary!I3:M8'
-exceldata: RE_Tariff_and_Financial_Analysis_Tool_v2.2-unprotected.bin
 macro:
-  module: RE_Tariff_macros
+  args: [Inputs&Summary!D14, Inputs&Summary!D15, Inputs&Summary!D16, Inputs&Summary!D17,
+    Inputs&Summary!D18]
   function: HandleTechOrStateChange
-  args: [Inputs&Summary!D14,Inputs&Summary!D15,Inputs&Summary!D16,Inputs&Summary!D17,Inputs&Summary!D18]
+  module: RE_Tariff_macros
+output: Inputs&Summary!I3:M8

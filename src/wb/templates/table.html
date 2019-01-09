@@ -3,28 +3,62 @@
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     <script type="text/javascript">
       google.charts.load('current', {'packages':['corechart']});
-      google.charts.setOnLoadCallback(drawChart);
+      google.charts.setOnLoadCallback(draw);
 
-      function drawChart() {
-        var data = new google.visualization.DataTable();
-        {%- for type_, column in columns %}
-          data.addColumn('{{ type_ }}', '{{ column }}');
-        {%- endfor %}
-        data.addRows([
-            {%- for x,y,z in data %}
-               ['{{ x }}', {{ y }},  {{ z }}],
-            {%- endfor %}
-        ]);
-        
+      function loadData(){
+          var data = new google.visualization.DataTable();
+      
+          {%- for column in linecolumns %}
+              data.addColumn({{ column|tojson|safe }});
+          {%- endfor %}
+          data.addRows([
+                {%- for row in linedata %}
+                    {{ row|tojson|safe }},
+                {%- endfor %}
+           ]);
+         return data;
+      }
+      
+      function combo() {
+          var data = new google.visualization.DataTable();
+          {%- for column in combodata['columns'] %}
+              data.addColumn({{ column|tojson|safe }});
+          {%- endfor %}
+          data.addRows([
+                {%- for row in combodata['data'] %}
+                    {{ row|tojson|safe }},
+                {%- endfor %}
+           ]);
 
-        var options = {
-          title: 'Tariff Chart',
-          legend: { position: 'top-right' }
+
+          var options = {{ combodata['options']|tojson|safe }};
+
+          var areachart = new google.visualization.ComboChart(document.getElementById('combo_chart'));
+          areachart.draw(data, options);
+      
+      }
+
+
+      function columnchart(data){
+      var options_fullStacked = {
+          isStacked: 'percent',
+          title : 'Tariff Breakup'
         };
+    
+      var column_chart = new google.visualization.ColumnChart(document.getElementById('column_chart'));
+      column_chart.draw(data, options_fullStacked);
+      
+      }
 
-        var chart = new google.visualization.LineChart(document.getElementById('curve_chart'));
+      
+      function draw() {
+          var data = loadData()
+          columnchart(data);
+          {%- if combodata is defined %}
+              combo(data.clone());
+          {%- endif %}
 
-        chart.draw(data, options);
+      
       }
     </script>
   </head>
@@ -40,7 +74,8 @@
 	{% endfor %}
       </table>
     </div>
-    <div id="curve_chart" style="width: 900px; height: 500px"></div>
+    <div id="combo_chart" style="width: 900px; height: 500px"></div>
+    <div id="column_chart" style="width: 900px; height: 500px"></div>
   </body>
 
 

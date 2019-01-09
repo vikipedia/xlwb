@@ -11,6 +11,11 @@ def extract_column_row(cell):
     column, row = m.groups()
     return column, row
 
+
+def extractdata(data, range_):
+    return [[data[c] for c in row] for row in excelrange(range_)]
+
+
 def excelrange(range_):
     def cell(c,r):
         return "!".join([sheet, indtocol(c)+ str(r)])

@@ -1,8 +1,8 @@
 from flask import Flask, render_template, request, redirect
 import yaml
-from xlwb.xlspy.excelfunctions import excelrange
+from xlwb.xlspy.excelfunctions import excelrange, flatten
 from xlwb.xlspy import excelexec
-import forms
+import forms, charts
 import pickle
 import json
 
@@ -13,9 +13,13 @@ def get_range(data, r):
     return [[data[c] for c in row] for row in r]
 
 def prepare_data():
+    print("Reading configuration files....")
     confdata = yaml.load(open("inputs_conf.yaml"))
     with open(confdata['exceldata'], "rb") as f:
+        print("Reading data....")
         exceldata = pickle.load(f)
+
+    print("Reading Done")
     input_cells = confdata['input_cells']
     
     for item, value in input_cells.items():
@@ -25,7 +29,7 @@ def prepare_data():
             m = value['menudata']
             if isinstance(m, str) and "!" in m:
                 r = excelrange(m)
-                value['menudata'] = get_range(exceldata, r)
+                value['menudata'] = flatten(get_range(exceldata, r))
             else:
                 value['menudata'] = m
 
@@ -56,13 +60,9 @@ def compute():
     
         excelexec.compute(exceldata,inputs)
         o = get_range(exceldata,  excelrange(app.conf['output']))
-        columns = [('string', 'Year'),
-                   ('number', 'Fuel Cost'),
-                   ('number', 'Expenses')]
-        chartdata = [('2004',  1000,      400),
-                     ('2005',  1170,      460),
-                     ('2006',  660,       1120),
-                     ('2007',  1030,      540)]
+        chartdata = charts.process_chartdata(exceldata, app.conf)
+        print(chartdata.keys())
+        return render_template("table.html", output=o, **chartdata)
 
-        return render_template("table.html", output=o, data=chartdata, columns=columns)
 
+    

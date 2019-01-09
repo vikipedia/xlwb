@@ -196,13 +196,16 @@ def handle_macro(cm, inputs, w=None):
     """
     w is precalcuted sheet by excel for testing purpose only
     """
-    
-    if "macro" not in inputs:
-        return
-    input_cells = inputs['input_cells']
+    input_cells = inputs['input_cells']    
     for k, v in input_cells.items():
         print(k, v)
     print("="*20)
+
+    if "macro" not in inputs:
+        cm.update(input_cells)
+        return
+
+
     macro = inputs['macro']
     module = importlib.import_module(macro['module'])
     func = getattr(module, macro["function"])
@@ -225,9 +228,14 @@ def parse_args():
 
 def compute(cellmap, inputs, w=None):
     handle_macro(cellmap, inputs, w)
-    graph = build_graph(cellmap)
+    compute_range(cellmap,inputs['output'], w)
     
-    outputs = get_outputs(inputs['output'])
+def compute_range(cellmap, outputrange , w=None):
+    outputs = get_outputs(outputrange)
+    compute_cells(cellmap, outputs, w)
+
+def compute_cells(cellmap, outputs, w=None):
+    graph = build_graph(cellmap)
 
     for o in outputs:
         v = evaluate_cell(o, cellmap, graph, w)
