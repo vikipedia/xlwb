@@ -1,21 +1,54 @@
 all_inputs: []
-chart:
-   X: 'Tariff!C27:AP27'
-   names: 'Tariff!B49:B55'
-   series: 'Tariff!D49:W55'
-   types: [combo,column] 
-   xcategory: true
-   xname: Year
-   id: tariff
-   combo:
-     names: 'Tariff!B49:B57'
-     series: 'Tariff!D49:W57'
-     options:
-       title: 'Tariff Chart'
-       legend: {position: 'top-right' }
-       seriesType: area
+charts:
+- X: Inputs&Summary!I4:I8
+  names: Inputs&Summary!J3:M3
+  series: Inputs&Summary!J4:M8
+  xcategory: true
+  rowwise: false
+  xname: Output
+  id: tarrif
+  types:
+     Table:
+       showRowNumber: true
+       width: '100%'
+       height: '100%'
+- X: 'Tariff!C27:AP27'
+  names: 'Tariff!B49:B57'
+  series: 'Tariff!D49:W57'
+  xcategory: true
+  rowwise: true
+  xname: Year
+  id: tarrifchart
+  types:
+    ComboChart:
+        title: 'Tariff Chart'
+        legend: {position: 'top-right' }
+        seriesType: area
+        isStacked: true
+        series: {7: {type: line, pointSize: 10}, 8: {type: line, pointSize: 10}}
+- X: 'Tariff!C27:AP27'
+  names: 'Tariff!B49:B55'
+  series: 'Tariff!D49:W55'
+  xcategory: true
+  rowwise: true
+  xname: Year
+  id: tariffbreakup
+  types:
+     ColumnChart:
+       isStacked: 'percent'
+       title : 'Tariff Breakup'
+- X: 'Off-Grid Sensitivity!D36:F36'
+  names: 'Off-Grid Sensitivity!A38:A40'
+  series: 'Off-Grid Sensitivity!D38:F40'
+  xcategory: true
+  rowwise: true
+  xname: Grid
+  cond:  Inputs&Summary!D19 == "Off-grid"
+  id: off-grid-tarrifbreakup
+  types:
+     ColumnChart:
        isStacked: true
-       series: {7: {type: line, pointSize: 10}, 8: {type: line, pointSize: 10}}
+       title : 'Tariff Breakup'
 exceldata: RE_Tariff_and_Financial_Analysis_Tool_v2.2-unprotected.bin
 input_cells:
   Inputs&Summary!D14: {description: Inputs&Summary!C14, max: 2050, min: 2000, name: start_year,

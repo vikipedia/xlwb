@@ -21,7 +21,7 @@ def prepare_data():
 
     print("Reading Done")
     input_cells = confdata['input_cells']
-    
+
     for item, value in input_cells.items():
         d = value['description']
         value['description'] = exceldata.get(d, d)
@@ -40,7 +40,7 @@ app.conf  = prepare_data()
 def _exceldata():
     with open(app.conf['exceldata'], "rb") as f:
         return pickle.load(f)
-    
+
 
 @app.route("/", methods = ["GET", "POST"])
 def index():
@@ -53,16 +53,12 @@ def compute():
     exceldata = _exceldata()
     Form = forms.get_form(app.conf['input_cells'], _exceldata())
     form = Form(request.form)
-    
+
     if request.method == 'POST':
         inputs = {k:app.conf[k] for k in ["output", "macro"]}
         inputs['input_cells'] = {item:getattr(form,item).data for item in app.conf['input_cells']}
-    
+
         excelexec.compute(exceldata,inputs)
         o = get_range(exceldata,  excelrange(app.conf['output']))
         chartdata = charts.process_chartdata(exceldata, app.conf)
-        print(chartdata.keys())
-        return render_template("table.html", output=o, **chartdata)
-
-
-    
+        return render_template("table.html", output=o, chartdata=chartdata)

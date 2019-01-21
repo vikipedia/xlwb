@@ -2,82 +2,36 @@
   <head>
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     <script type="text/javascript">
-      google.charts.load('current', {'packages':['corechart']});
-      google.charts.setOnLoadCallback(draw);
+      google.charts.load('current', {'packages':['corechart', 'table']});
+      google.charts.setOnLoadCallback(drawcharts);
 
-      function loadData(){
-          var data = new google.visualization.DataTable();
-      
-          {%- for column in linecolumns %}
+      function drawcharts(){
+        {%-for chart_conf in chartdata %}
+            var data = new google.visualization.DataTable();
+
+            {%- for column in chart_conf['columns'] %}
               data.addColumn({{ column|tojson|safe }});
-          {%- endfor %}
-          data.addRows([
-                {%- for row in linedata %}
-                    {{ row|tojson|safe }},
-                {%- endfor %}
-           ]);
-         return data;
-      }
-      
-      function combo() {
-          var data = new google.visualization.DataTable();
-          {%- for column in combodata['columns'] %}
-              data.addColumn({{ column|tojson|safe }});
-          {%- endfor %}
-          data.addRows([
-                {%- for row in combodata['data'] %}
-                    {{ row|tojson|safe }},
-                {%- endfor %}
-           ]);
+            {%- endfor %}
+            data.addRows([
+              {%- for row in chart_conf['data'] %}
+                {{ row|tojson|safe }},
+              {%- endfor %}
+            ]);
 
-
-          var options = {{ combodata['options']|tojson|safe }};
-
-          var areachart = new google.visualization.ComboChart(document.getElementById('combo_chart'));
-          areachart.draw(data, options);
-      
-      }
-
-
-      function columnchart(data){
-      var options_fullStacked = {
-          isStacked: 'percent',
-          title : 'Tariff Breakup'
-        };
-    
-      var column_chart = new google.visualization.ColumnChart(document.getElementById('column_chart'));
-      column_chart.draw(data, options_fullStacked);
-      
-      }
-
-      
-      function draw() {
-          var data = loadData()
-          columnchart(data);
-          {%- if combodata is defined %}
-              combo(data.clone());
-          {%- endif %}
-
-      
+            {%- for chart, options in  chart_conf['types'].items() %}
+              var options = {{ options|tojson|safe }};
+              var {{ [chart_conf['id'], chart]|join('_') }} = new google.visualization.{{chart}}(document.getElementById("{{ [chart_conf['id'], chart]|join('_') }}"));
+              {{ [chart_conf['id'], chart]|join('_') }}.draw(data, options);
+            {%- endfor %}
+        {%- endfor %}
       }
     </script>
   </head>
   <body>
-    <div>
-      <table>
-	{% for row in output %}
-	<tr>
-	  {% for item in row %}
-	  <td>{{item}}</td>
-	  {% endfor %}
-	</tr>
-	{% endfor %}
-      </table>
-    </div>
-    <div id="combo_chart" style="width: 900px; height: 500px"></div>
-    <div id="column_chart" style="width: 900px; height: 500px"></div>
+    {%- for chart_conf in chartdata %}
+        {%- for chart, options in chart_conf['types'].items() %}
+          <div id="{{ [chart_conf['id'], chart]|join('_') }}" style="width: 900px; height: 500px"></div>
+        {%- endfor %}
+    {%- endfor %}
   </body>
-
-
-
 </html>
