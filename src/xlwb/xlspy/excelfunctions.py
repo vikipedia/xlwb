@@ -11,16 +11,41 @@ def extract_column_row(cell):
     column, row = m.groups()
     return column, row
 
+def columnchange(c, n):
+    sheet, cell = c.split("!")
+    column, row = extract_column_row(cell)
+    return "!".join([sheet,indtocol(columnind(column)+n) + row])
+
+def nextcolumn(c):
+    return columnchange(c, 1)
+
+def prevcolumn(c):
+    return columnchange(c, -1)
+
+def test_columnchange():
+    assert columnchange("S!B3", 1) == "S!C3"
+    assert columnchange("S!B3", -1) == "S!A3"
 
 def extractdata(data, range_):
     return [[data[c] for c in row] for row in excelrange(range_)]
 
+def extract_ranges(ranges):
+    """
+    >>> extract_ranges("S!A1:A3,S!B3")
+    [S!A1,S!A2,S!A3,S!B3]
+    """
+    ranges_ = [excelrange(o) for o in ranges.strip().split(",")]
+    o = [s.strip() for s in flatten(flatten(flatten(ranges_)))]
+    return o
+
+def test_extract_ranges():
+    assert extract_ranges("S!A1:A3,S!B3") == ["S!A1","S!A2","S!A3","S!B3"]
 
 def excelrange(range_):
     def cell(c,r):
         return "!".join([sheet, indtocol(c)+ str(r)])
     if ":" not in range_:
-        return [[range_]]    
+        return [[range_]]
     sheet, r = range_.split("!")
     start,end = r.split(":")
     sc,sr = extract_column_row(start)
@@ -34,7 +59,7 @@ def test_excelrange():
     assert excelrange("S!A1:C1") == [["S!A1",  "S!B1", "S!C1"]]
     assert excelrange("S!A1:B2") == [["S!A1",  "S!B1"],["S!A2","S!B2"]]
     assert excelrange("S!A1") == [["S!A1"]]
-    
+
 
 def updateformula(formula, data):
     """
@@ -62,7 +87,7 @@ def test_update_formula():
     assert updateformula(f1, data) == g1
     assert updateformula(f2, data) == g2
     assert updateformula(f3, data) == g3
-    
+
 def copypaste(cellmap,source, target):
     """
     copy contents of source range and paste it to target range.
@@ -71,11 +96,11 @@ def copypaste(cellmap,source, target):
     s = excelrange(source)
     t = excelrange(target)
     mapping = {}
-    
+
     for sr, tr in zip(s,t):
         for sc, tc in zip(sr, tr):
             mapping[sc] = tc
-            
+
     for k,v in mapping.items():
         f = updateformula(cellmap.get(k,None), mapping)
         cellmap[v] = f
@@ -91,11 +116,11 @@ def test_copypaste():
           "S!B1":20,"S!B2":0, "S!B3":0}
     copypaste(cm, "S!A1", "S!B3")
     assert cm['S!B3'] == 10
-    
+
 def print_table(table):
     vwrap()
-    
-        
+
+
 def indtocol(num):
     """
     >>> indtocol(1)
@@ -103,7 +128,7 @@ def indtocol(num):
     """
     if num < 1:
         raise Exception("Number must be larger than 0: %s" % num)
-    
+
     s = ''
     q = num
     while q > 0:
@@ -144,8 +169,8 @@ def npv(*args):
     except TypeError as t:
         print("NPV", [type(i) for i in args], args)
 
-def test_npv():
-    assert npv(10, range(10)) == numpy.npv(10, range(10))
+#def test_npv():
+#    assert npv(10, range(10)) == numpy.npv(10, range(10))
 
 
 def flatten(lists):
@@ -172,7 +197,7 @@ def numeric(l):
 
 def SUM(*args):
     return math.fsum(numeric(flatten(flatten(args))))
-  
+
 def test_SUM():
     assert SUM([1,1,1]) == 3
     assert SUM(1, 1, 1, 2) == 5
@@ -220,12 +245,12 @@ def test_VLOOKUP():
             [1,2,3,4],
             [5,6,7,8]]
     data = transpose(data)
-    
+
     assert VLOOKUP("ye*", data, 2, False) == 2
     assert VLOOKUP("?ello", data, 2, False) == 1
     assert VLOOKUP("?ppl*", data, 2, False) == 3
     assert VLOOKUP("*p.l?", data, 2, False) == 4
-        
+
 def AVERAGE(*args):
     a = flatten(flatten(args))
     na = [item for item in a if isinstance(item,(float,int))]
@@ -282,10 +307,10 @@ def test_COUNTIF():
     assert COUNTIF(value, "<>0") == 8
     value = [0.2]*30 + [0.0, 0.0, 0.0]
     assert COUNTIF(value, "<>0") == 30
-    
 
 
-    
+
+
 def AND(*args):
     return functools.reduce(operator.and_, args, True)
 
@@ -335,23 +360,23 @@ def test_MATCH():
     assert MATCH(3.5, data, 1) == 3
     assert MATCH(3.5, data, -1) == 4
 
-    
+
 def OFFSET(ref, *args):
     pattern = re.compile(r"('?(?P<SHEET>[\w &-]+)'?[\!\.])?(?P<RANGE>(?P<CELL>[A-Z]+\d+)(:[A-Z]+\d+)?)")
     ref = ref.replace("$","")
     m = pattern.match(ref)
-    SHEET = m.group("SHEET") 
+    SHEET = m.group("SHEET")
     RANGE = m.group("RANGE")
     CELL = m.group("CELL")
 
     col, row = extract_column_row(CELL)
-    
+
     rows, cols = args[:2]
     col = columnind(col) + int(cols)
     row = int(row) + int(rows)
 
     r = indtocol(col)+str(row)
-    
+
     if len(args)==3:
         height = args[2]
     elif len(args)==4:
@@ -400,7 +425,7 @@ def SUMIFS(data, array, condition):
         return math.fsum([d[i] for i,x in enumerate(a) if p.match(x)])
     else:
         return math.fsum(d[i] for i,x in enumerate(a) if x==condition)
-    
+
 
 def test_SUMIFS():
     d = [1,2,3,4,5,4,4,5]
@@ -413,7 +438,7 @@ def test_SUMIFS():
     assert SUMIFS(d, a, 40) == 12
     assert SUMIFS(d, a, "<>40") == 16
 
-    
+
 
 def SUMPRODUCT(array, *arrays):
     if not arrays:

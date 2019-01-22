@@ -18,8 +18,14 @@
               {%- endfor %}
             ]);
 
-            {%- for chart, options in  chart_conf['types'].items() %}
-              var options = {{ options|tojson|safe }};
+            {%- for chart, conf in  chart_conf['types'].items() %}
+              var options = {{ conf['options']|tojson|safe }};
+              {%- if conf.numberformat is defined %}
+                  var formatter = new google.visualization.NumberFormat({{ conf.numberformat.options|tojson|safe}});
+                  {%- for c in conf.numberformat.columns %}
+                      formatter.format(data, {{c}});
+                  {%- endfor %}
+              {%- endif %}
               var {{ [chart_conf['id'], chart]|join('_') }} = new google.visualization.{{chart}}(document.getElementById("{{ [chart_conf['id'], chart]|join('_') }}"));
               {{ [chart_conf['id'], chart]|join('_') }}.draw(data, options);
             {%- endfor %}
@@ -29,8 +35,8 @@
   </head>
   <body>
     {%- for chart_conf in chartdata %}
-        {%- for chart, options in chart_conf['types'].items() %}
-          <div id="{{ [chart_conf['id'], chart]|join('_') }}" style="width: 900px; height: 500px"></div>
+        {%- for chart, conf in chart_conf['types'].items() %}
+          <div id="{{ [chart_conf['id'], chart]|join('_') }}" style="{{ conf['style'] }}"></div>
         {%- endfor %}
     {%- endfor %}
   </body>

@@ -7,7 +7,7 @@ from networkx.exception import NetworkXNoCycle
 import collections
 import argparse
 import yaml, pickle
-from xlwb.xlspy.excelfunctions import excelrange, flatten
+from xlwb.xlspy.excelfunctions import excelrange, flatten, extract_ranges
 import importlib
 from math import isnan
 
@@ -42,7 +42,7 @@ def update_graph(G, parent, lispexpression):
     for c in cells(lispexpression):
         add_node(c)
         add_edge(parent, c)
-    
+
 def update_cellmap(cells, cellmap, w=None):
     """
     evaluate every cell from list of cells and update cellmap
@@ -78,9 +78,9 @@ def update_cellmap(cells, cellmap, w=None):
         else:
             pass
             #print(cellid, c)
-                
+
     return count
- 
+
 def print_dict(d):
     for k in sorted(d.keys()):
         print(k, d[k])
@@ -101,7 +101,7 @@ def build_graph_(data, source, G=None):
         G = nx.DiGraph()
     add_node = G.add_node
     add_edge = G.add_edge
-    
+
     add_node(source)
     v = data[source]
     if isinstance(v, (tuple, list)):
@@ -110,7 +110,7 @@ def build_graph_(data, source, G=None):
             add_edge(source, c)
             G = build_graph_(data, c, G)
     return G
-        
+
 
 def _graphdata():
     cellmap = {"A1":1,"A2":2,
@@ -120,7 +120,7 @@ def _graphdata():
                "E1":("SUM", [[("*", ("+" , ("CELL","C1"),("CELL", "D1")),("+" , ("CELL","C1"),("CELL", "D1")))], ["A1"],["B1"]])
     }
     return cellmap
-    
+
 def test_build_graph():
     cellmap = _graphdata()
     g = build_graph(cellmap)
@@ -128,12 +128,12 @@ def test_build_graph():
     assert set(g.edges()) == {('C1', 'B1'), ('B1', 'A1'), ('B1', 'A2'), ('D1', 'C1'),("E1","D1"),("E1","C1")}
     assert set(g.successors("B1")) == {"A1","A2"}
     assert set(g.successors("C1")) == {"B1"}
-    assert set(g.successors("E1")) == {"C1","D1"}    
+    assert set(g.successors("E1")) == {"C1","D1"}
 
 def test_build_graph_():
     cellmap = _graphdata()
     g = build_graph_(cellmap, "C1")
-    
+
     assert sorted(g.nodes()) == sorted(["A1","A2","B1","C1"])
     assert set(g.edges()) == {('C1', 'B1'), ('B1', 'A1'), ('B1', 'A2')}
     assert set(g.successors("B1")) == {"A1","A2"}
@@ -145,7 +145,7 @@ def test_build_graph_():
     assert set(g.edges()) == {('C1', 'B1'), ('B1', 'A1'), ('B1', 'A2'), ('D1', 'C1'),("E1","D1"),("E1","C1")}
     assert set(g.successors("B1")) == {"A1","A2"}
     assert set(g.successors("C1")) == {"B1"}
-    assert set(g.successors("E1")) == {"C1","D1"}    
+    assert set(g.successors("E1")) == {"C1","D1"}
 
 
 def find_cycle_(graph, cellid):
@@ -175,9 +175,9 @@ def evaluate_cell(cellid, cellmap, graph, w=None):
             break
         if sum([1 for c in cycle if isinstance(cellmap[c], tuple)])==0:
             break
-                
+
         count -= 1
-    
+
     return cellmap[cellid]
 
 def test_exec_excel():
@@ -190,13 +190,13 @@ def test_exec_excel():
     assert abs(evaluate_cell("Sheet1!C2", cellmap, graph) - 0.96)<=accuracy
     assert abs(evaluate_cell( "Sheet1!C3", cellmap, graph) - 1.25)<=accuracy
     assert abs(evaluate_cell("Sheet1!C4", cellmap, graph) - 3.34)<=accuracy
-    assert evaluate_cell("Sheet1!C6", cellmap, graph) == 1    
+    assert evaluate_cell("Sheet1!C6", cellmap, graph) == 1
 
 def handle_macro(cm, inputs, w=None):
     """
     w is precalcuted sheet by excel for testing purpose only
     """
-    input_cells = inputs['input_cells']    
+    input_cells = inputs['input_cells']
     for k, v in input_cells.items():
         print(k, v)
     print("="*20)
@@ -223,15 +223,15 @@ def parse_args():
                         type=str,
                         help="inputs filename, inputs file should be in yaml format")
     return parser.parse_args()
-    
+
 
 
 def compute(cellmap, inputs, w=None):
     handle_macro(cellmap, inputs, w)
     compute_range(cellmap,inputs['output'], w)
-    
+
 def compute_range(cellmap, outputrange , w=None):
-    outputs = get_outputs(outputrange)
+    outputs = extract_ranges(outputrange)
     compute_cells(cellmap, outputs, w)
 
 def compute_cells(cellmap, outputs, w=None):
@@ -239,7 +239,7 @@ def compute_cells(cellmap, outputs, w=None):
 
     for o in outputs:
         v = evaluate_cell(o, cellmap, graph, w)
-    
+
 
 def print_results(outputs, cellmap):
 
@@ -251,13 +251,6 @@ def print_results(outputs, cellmap):
             print("{0} {1:4.4f}".format(o,v))
         else:
             print(o, v)
-    
-
-def get_outputs(outputs):
-    ranges = [excelrange(o) for o in outputs.strip().split(",")]
-    o = [s.strip() for s in flatten(flatten(flatten(ranges)))]
-    return o
-                
 
 
 def main(exceldata, inputs, w=None):
@@ -268,10 +261,10 @@ def main(exceldata, inputs, w=None):
 
     compute(cellmap, inputs, w)
 
-    outputs = get_outputs(inputs['output'])
+    outputs = extract_ranges(inputs['output'])
     print_results(outputs, cellmap)
-    
-    
+
+
 if __name__ == "__main__":
     args = parse_args()
     main(args.exceldata, args.inputs)

@@ -18,13 +18,13 @@ def get_value(v, data):
         return data.get(v, None)
     return v
 
-def create_field(name, fielddata, data):
+def create_field(fielddata, data):
     typemap = {
         "int":IntegerField,
         "text":StringField,
         "menu":SelectField
         }
-    
+    name = fielddata['id']
     fieldclass = typemap[fielddata['ui']]
     kwargs= {'default':get_value(fielddata.get('value', None), data),
              'label':get_value(fielddata.get('description', None), data),
@@ -39,14 +39,11 @@ def get_form(data, cellmap):
     class InputsForm(FlaskForm):
         def get_fields_(self):
             return [getattr(self, name) for name in self._fields]
-            
-
-    Field = collections.namedtuple("Field", ["name","field"])
 
     fields = []
-    for item, value in data.items():
-        f = create_field(item, value, cellmap)
-        setattr(InputsForm, item, f)
+    for item in data:
+        f = create_field(item, cellmap)
+        setattr(InputsForm, item['id'], f)
         fields.append(item)
 
     return InputsForm

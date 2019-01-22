@@ -9,9 +9,16 @@ charts:
   id: tarrif
   types:
      Table:
-       showRowNumber: true
-       width: '100%'
-       height: '100%'
+       style: "width: 800px; height: 300px"
+       numberformat:
+          options: {"fractionDigits":2}
+          columns: [1,2,3,4]
+       options:
+         allowHtml: true
+         showRowNumber: true
+         width: "100%"
+         height: "100%"
+         alternatingRowStyle: true
 - X: 'Tariff!C27:AP27'
   names: 'Tariff!B49:B57'
   series: 'Tariff!D49:W57'
@@ -21,11 +28,14 @@ charts:
   id: tarrifchart
   types:
     ComboChart:
+      style: "width: 900px; height: 500px"
+      options:
         title: 'Tariff Chart'
         legend: {position: 'top-right' }
         seriesType: area
         isStacked: true
         series: {7: {type: line, pointSize: 10}, 8: {type: line, pointSize: 10}}
+
 - X: 'Tariff!C27:AP27'
   names: 'Tariff!B49:B55'
   series: 'Tariff!D49:W55'
@@ -34,9 +44,12 @@ charts:
   xname: Year
   id: tariffbreakup
   types:
-     ColumnChart:
-       isStacked: 'percent'
-       title : 'Tariff Breakup'
+    ColumnChart:
+      style: "width: 900px; height: 500px"
+      options:
+        isStacked: 'percent'
+        title : 'Tariff Breakup'
+
 - X: 'Off-Grid Sensitivity!D36:F36'
   names: 'Off-Grid Sensitivity!A38:A40'
   series: 'Off-Grid Sensitivity!D38:F40'
@@ -44,37 +57,45 @@ charts:
   rowwise: true
   xname: Grid
   cond:  Inputs&Summary!D19 == "Off-grid"
-  id: off-grid-tarrifbreakup
+  id: off_grid_tarrifbreakup
   types:
      ColumnChart:
-       isStacked: true
-       title : 'Tariff Breakup'
+       style: "width: 900px; height: 500px"
+       options:
+         isStacked: true
+         title : 'Tariff Breakup'
 exceldata: RE_Tariff_and_Financial_Analysis_Tool_v2.2-unprotected.bin
 input_cells:
-  Inputs&Summary!D14: {description: Inputs&Summary!C14, max: 2050, min: 2000, name: start_year,
-    type: int, ui: int, value: Inputs&Summary!D14}
-  Inputs&Summary!D15:
+  - id: Inputs&Summary!D14
+    description: Inputs&Summary!C14
+    max: 2050
+    min: 2000
+    name: start_year
+    type: int
+    ui: int
+    value: Inputs&Summary!D14
+  - id: Inputs&Summary!D15
     description: Inputs&Summary!C15
     menudata: Inputs-REC!C4:C22
     name: state
     type: text
     ui: menu
     value: Inputs&Summary!D15
-  Inputs&Summary!D16:
+  - id: Inputs&Summary!D16
     description: Inputs&Summary!C16
     menudata: Introduction!O25:O35
     name: technology
     type: text
     ui: menu
     value: Inputs&Summary!D16
-  Inputs&Summary!D17:
+  - id: Inputs&Summary!D17
     description: Inputs&Summary!C17
     menudata: ['Hilly, Tribal, Desert', Moderate Remote, Normal Terrain]
     name: location
     type: text
     ui: menu
     value: Inputs&Summary!D17
-  Inputs&Summary!D18:
+  - id: Inputs&Summary!D18
     description: Inputs&Summary!C18
     menudata: [Highly Scattered, Medium Scattered, Less Scattered]
     name: density

@@ -12,17 +12,17 @@ app.secret_key = b'\x08\x19\xf3\x0e\xfb\x80\x11\x13\x13\xb8\x82c\x99}\x9e{'
 def get_range(data, r):
     return [[data[c] for c in row] for row in r]
 
-def prepare_data():
-    print("Reading configuration files....")
-    confdata = yaml.load(open("inputs_conf.yaml"))
-    with open(confdata['exceldata'], "rb") as f:
-        print("Reading data....")
-        exceldata = pickle.load(f)
 
-    print("Reading Done")
+def prepare_data(conffile):
+    print("Reading configuration files....")
+    confdata = yaml.load(open(conffile))
+    exceldata = _exceldata(confdata)
+
+    print("Reading Data Done")
+
     input_cells = confdata['input_cells']
 
-    for item, value in input_cells.items():
+    for value in input_cells:
         d = value['description']
         value['description'] = exceldata.get(d, d)
         if value['ui'] == "menu":
@@ -35,30 +35,27 @@ def prepare_data():
 
     return  confdata
 
-app.conf  = prepare_data()
-
-def _exceldata():
-    with open(app.conf['exceldata'], "rb") as f:
+def _exceldata(conf):
+    with open(conf['exceldata'], "rb") as f:
         return pickle.load(f)
 
 
-@app.route("/", methods = ["GET", "POST"])
-def index():
-    Form = forms.get_form(app.conf['input_cells'], _exceldata())
-    form = Form()
-    return render_template("inputform.html", form=form)
-
-@app.route("/compute", methods = ["GET","POST"])
-def compute():
-    exceldata = _exceldata()
-    Form = forms.get_form(app.conf['input_cells'], _exceldata())
-    form = Form(request.form)
+@app.route("/<toolname>", methods = ["GET","POST"])
+def compute(toolname):
+    conf  = prepare_data(toolname + ".yaml" )
+    exceldata = _exceldata(conf)
+    Form = forms.get_form(conf['input_cells'], exceldata)
 
     if request.method == 'POST':
-        inputs = {k:app.conf[k] for k in ["output", "macro"]}
-        inputs['input_cells'] = {item:getattr(form,item).data for item in app.conf['input_cells']}
+        form = Form(request.form)
+        inputs = {k:conf[k] for k in ["output", "macro"]}
+        inputs['input_cells'] = {item['id']:getattr(form,item['id']).data for item in conf['input_cells']}
 
         excelexec.compute(exceldata,inputs)
-        o = get_range(exceldata,  excelrange(app.conf['output']))
-        chartdata = charts.process_chartdata(exceldata, app.conf)
+        o = get_range(exceldata,  excelrange(conf['output']))
+        chartdata = charts.process_chartdata(exceldata, conf)
+
         return render_template("table.html", output=o, chartdata=chartdata)
+
+    form = Form()
+    return render_template("inputform.html", toolname=toolname, form=form)

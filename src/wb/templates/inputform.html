@@ -1,4 +1,5 @@
-<form method="POST" action="/compute">
+<form method="POST" action="/{{toolname}}">
+  {{ form.csrf_token }}
   <table>
     {% for formfield in form.get_fields_() %}
     <tr>
@@ -7,9 +8,9 @@
     </tr>
     {% endfor %}
     <tr>
-      
+
       <td>
-	<input type="submit" value="Next">
+	      <input type="submit" value="Next">
       </td>
       <td></td>
     </tr>
