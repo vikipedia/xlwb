@@ -1,4 +1,5 @@
-from wtforms import StringField, IntegerField, SelectField, validators
+from wtforms import StringField, IntegerField, FloatField
+from wtforms import SelectField, BooleanField, validators
 from flask_wtf import FlaskForm
 
 import collections
@@ -9,7 +10,7 @@ def validators_(fielddata):
     if "max" in fd and "min" in fd:
         v.append(validators.NumberRange(min=fd['min'], max=fd['max']))
     elif fielddata['ui'] == "text":
-        v.append(validators.Length(min=fd.get('minlen',0),max=fd.get('maxlen',20)))
+        v.append(validators.Length(min=fd.get('minlen',0),max=fd.get('maxlen',30)))
     return v
 
 
@@ -22,7 +23,9 @@ def create_field(fielddata, data):
     typemap = {
         "int":IntegerField,
         "text":StringField,
-        "menu":SelectField
+        "menu":SelectField,
+        "float":FloatField,
+        "bool":BooleanField,
         }
     name = fielddata['id']
     fieldclass = typemap[fielddata['ui']]

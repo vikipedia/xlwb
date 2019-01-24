@@ -1,3 +1,8 @@
+<html>
+<head>
+<title>{{toolname|capitalize}}</title>
+</head>
+<body>
 <form method="POST" action="/{{toolname}}">
   {{ form.csrf_token }}
   <table>
@@ -10,9 +15,13 @@
     <tr>
 
       <td>
-	      <input type="submit" value="Next">
+        {% if advanced is defined %}
+	         <input type="submit" name="advanced" value="Advanced">
+        {% endif %}
       </td>
-      <td></td>
+      <td><input type="submit" name="finish" value="Finish"></td>
     </tr>
   </table>
 </form>
+</body>
+</html>
