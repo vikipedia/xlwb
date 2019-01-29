@@ -34,7 +34,7 @@ FOLDERPATH\bin\activate
 ```
 6. run following command in activated environment
 ```
-python xlwb/src/setup.py
+python xlwb/src/setup.py install
 cd xlwb/src/wbtool
 pip install -r requirements.txt
 python excelapp.py
