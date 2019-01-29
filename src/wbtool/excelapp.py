@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for
 import yaml
 from xlwb.xlspy.excelfunctions import excelrange, flatten
 from xlwb.xlspy import excelexec
-from . import forms, charts
+import forms, charts
 import pickle
 import json
 
@@ -50,6 +50,10 @@ def prepare_inputs(conf, input_cells, form):
     inputs = {k:conf[k] for k in items}
     inputs['input_cells'] = from_form(input_cells, form)
     return inputs
+
+@app.route("/", methods = ["GET"])
+def index():
+    return "Use yaml filename after without extrension /, to see the webapp"
 
 @app.route("/<toolname>", methods = ["GET","POST"])
 def compute(toolname):
@@ -108,3 +112,6 @@ def advanced_compute(toolname):
         units = get_other_data(exceldata, conf['advanced_inputs'], "unit")
         return render_template("advancedform.html", toolname=toolname,
                                 form1=form1, form2= form2, defaults=defaults, units=units)
+
+if __name__=="__main__":
+    app.run()
