@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<html>
+<head>
+<title>{{toolname|capitalize}}</title>
+</head>
+<body>
+<form method="POST" action="/advanced/{{toolname}}">
+  {{ form1.csrf_token }}
+  <table>
+    {% for formfield in form1.get_fields_() %}
+    <tr>
+      <td>{{formfield.label}}</td>
+      <td>{{ formfield() }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  <table>
+    <tr>
+      <th>desscrption</th>
+      <th>value</th>
+      <th>default</th>
+      <th>unit</th>
+    </tr>
+    {% for formfield in form2.get_fields_() %}
+    <tr>
+      <td>{{formfield.label}}</td>
+      <td>{{ formfield() }}</td>
+      <td>{{defaults[formfield.id]}}</td>
+      <td>{{units[formfield.id]}}</td>
+    </tr>
+    {% endfor %}
+
+    <tr>
+      <td>
+      </td>
+      <td><input type="submit" name="finish" value="Finish"></td>
+    </tr>
+  </table>
+</form>
+</body>
+<footer>
+  <p>Created by Simple Solutions.</p>
+</footer>
+</html>

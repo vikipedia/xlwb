@@ -1,0 +1,18 @@
+ //var table_data = new google.visualization.DataTable();
+     {%- for type_, column in output_columns %}
+          table_data.addColumn('{{ type_ }}', '{{ column }}');
+      {%- endfor %}
+
+      table_data.addRows([
+                {%- for a,b,c,d,e,f,g,h in linedata %}
+                    ['{{a}}', {{b}}, {{c}},{{d}},{{e}},{{f}},{{g}},{{h}}],
+                {%- endfor %}
+        ]);
+      
+      var formatter = new google.visualization.NumberFormat(
+      {prefix: '$', negativeColor: 'red', negativeParens: true});
+      formatter.format(data, 1); // Apply formatter to second column
+
+
+      var tablechart = new google.visualization.Table(document.getElementById('table_chart'));
+      tablechart.draw(data, options);

@@ -1,0 +1,31 @@
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<html>
+<head>
+<title>{{toolname|capitalize}}</title>
+</head>
+<body>
+<form method="POST" action="/{{toolname}}">
+  {{ form.csrf_token }}
+  <table>
+    {% for formfield in form.get_fields_() %}
+    <tr>
+      <td>{{formfield.label}}</td>
+      <td>{{ formfield() }}</td>
+    </tr>
+    {% endfor %}
+    <tr>
+
+      <td>
+        {% if advanced is defined %}
+	         <input type="submit" name="advanced" value="Advanced">
+        {% endif %}
+      </td>
+      <td><input type="submit" name="finish" value="Finish"></td>
+    </tr>
+  </table>
+</form>
+</body>
+<footer>
+  <p>Created by Simple Solutions.</p>
+</footer>
+</html>

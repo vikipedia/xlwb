@@ -1,0 +1,84 @@
+
+
+/* || General setup */
+
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 10px;
+  background-color: white;
+}
+
+body {
+  width: 70%;
+  margin: 0 auto;
+}
+
+
+/* || table */
+
+table{
+    font-size: 1.5rem;
+}
+
+th{
+    background-color: lightgray;
+    color: black;
+}
+
+.odd-row{
+  background-color: lightgray
+}
+
+.header-row{
+  background-color: lightgray
+}
+
+/* || header layout */
+
+header {
+  margin-bottom: 10px;
+}
+
+nav, article, aside {
+  background-color: white;
+  padding: 1%;
+}
+
+footer {
+    border-top: 2px solid gray; /* mid green */
+    padding: 1%;
+    margin-top: 10px;
+}
+
+input {
+  font-size: 1.6rem;
+  height: 32px;
+}
+
+
+/* || main layout */
+
+main {
+  display: flex;
+}
+
+article {
+  flex: 4;
+}
+
+aside {
+  flex: 1;
+  margin-left: 10px;
+  border-left: 2px solid #7c7; /* mid green */
+  background-color: #efe;     /* pale green */
+  color: #050;                /* dark green */
+
+}
+
+aside li {
+  padding-bottom: 10px;
+}

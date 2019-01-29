@@ -1,0 +1,52 @@
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<html>
+  <head>
+    <title>{{toolname|capitalize}}</title>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+      google.charts.load('current', {'packages':['corechart', 'table']});
+      google.charts.setOnLoadCallback(drawcharts);
+
+      function drawcharts(){
+        {%-for chart_conf in chartdata %}
+            var data = new google.visualization.DataTable();
+
+            {%- for column in chart_conf['columns'] %}
+              data.addColumn({{ column|tojson|safe }});
+            {%- endfor %}
+            data.addRows([
+              {%- for row in chart_conf['data'] %}
+                {{ row|tojson|safe }},
+              {%- endfor %}
+            ]);
+
+            {%- for chart, conf in  chart_conf['types'].items() %}
+              var options = {{ conf['options']|tojson|safe }};
+              {%- if conf.formats is defined %}
+                  {%- for Format in conf.formats %}
+                    {%- for formatname, value in Format.items() %}
+                      var formatter = new google.visualization.{{formatname}}({{ value.options|tojson|safe}});
+                      {%- for c in value.columns %}
+                        formatter.format(data, {{c}});
+                      {%- endfor %}
+                    {%- endfor %}
+                  {%- endfor %}
+              {%- endif %}
+              var {{ [chart_conf['id'], chart]|join('_') }} = new google.visualization.{{chart}}(document.getElementById("{{ [chart_conf['id'], chart]|join('_') }}"));
+              {{ [chart_conf['id'], chart]|join('_') }}.draw(data, options);
+            {%- endfor %}
+        {%- endfor %}
+      }
+    </script>
+  </head>
+  <body>
+    {%- for chart_conf in chartdata %}
+        {%- for chart, conf in chart_conf['types'].items() %}
+          <div id="{{ [chart_conf['id'], chart]|join('_') }}" style="{{ conf['style'] }}"></div>
+        {%- endfor %}
+    {%- endfor %}
+  </body>
+  <footer>
+    <p>Created by Simple Solutions.</p>
+  </footer>
+</html>
