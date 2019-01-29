@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for
 import yaml
 from xlwb.xlspy.excelfunctions import excelrange, flatten
 from xlwb.xlspy import excelexec
-import forms, charts
+from . import forms, charts
 import pickle
 import json
 
