@@ -1,3 +1,4 @@
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 <html>
   <head>
     <title>{{toolname|capitalize}}</title>
@@ -21,10 +22,14 @@
 
             {%- for chart, conf in  chart_conf['types'].items() %}
               var options = {{ conf['options']|tojson|safe }};
-              {%- if conf.numberformat is defined %}
-                  var formatter = new google.visualization.NumberFormat({{ conf.numberformat.options|tojson|safe}});
-                  {%- for c in conf.numberformat.columns %}
-                      formatter.format(data, {{c}});
+              {%- if conf.formats is defined %}
+                  {%- for Format in conf.formats %}
+                    {%- for formatname, value in Format.items() %}
+                      var formatter = new google.visualization.{{formatname}}({{ value.options|tojson|safe}});
+                      {%- for c in value.columns %}
+                        formatter.format(data, {{c}});
+                      {%- endfor %}
+                    {%- endfor %}
                   {%- endfor %}
               {%- endif %}
               var {{ [chart_conf['id'], chart]|join('_') }} = new google.visualization.{{chart}}(document.getElementById("{{ [chart_conf['id'], chart]|join('_') }}"));
@@ -41,4 +46,7 @@
         {%- endfor %}
     {%- endfor %}
   </body>
+  <footer>
+    <p>Created by Simple Solutions.</p>
+  </footer>
 </html>

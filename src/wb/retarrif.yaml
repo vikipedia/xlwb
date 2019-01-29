@@ -9,12 +9,12 @@ charts:
   types:
      Table:
        style: "width: 800px; height: 300px"
-       numberformat:
-          options: {"fractionDigits":2}
-          columns: [1,2,3,4]
+       formats:
+       - NumberFormat: {columns: [1, 2, 3, 4], options: {fractionDigits: 2}}
        options:
          allowHtml: true
-         showRowNumber: true
+         #cssClassNames: {tableCell: 'table-font'}
+         #showRowNumber: true
          width: "100%"
          height: "100%"
          alternatingRowStyle: true
