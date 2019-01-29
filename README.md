@@ -14,13 +14,18 @@ optional arguments:
   -o OUTPUT, --output OUTPUT
                         output filename, if not given input file's name will
                         be used with bin extension.
+
 2. Once data for excelsheet is generated using excelparse utility. follow wbtool/guild_inputs.txt to write a yaml file for web application.
+
 3. copy exceldata generated using excelrun utility and yaml file in folder wbtool.
+
 4. create virtualenv with
 python -m venv FOLDERPATH
+
 5. activate virtualenv using
 source FODERPATH/bin/activate
-on windows => FOLDERPATH\bin\activate
+on windows use FOLDERPATH\bin\activate
+
 6. run following command in activated environment
 python xlwb/src/setup.py
 cd xlwb/src/wbtool
@@ -35,4 +40,4 @@ this should start a server with following prompt messages
  * Debug mode: off
  * Running on http://127.0.0.1:5000/ (Press CTRL+C to quit)
 
-7. Open browser and open location  http://127.0.0.1:5000/ 
+7. Open browser and open location  http://127.0.0.1:5000/
