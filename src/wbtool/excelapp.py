@@ -4,7 +4,7 @@ from xlwb.xlspy.excelfunctions import excelrange, flatten
 from xlwb.xlspy import excelexec
 import forms, charts
 import pickle
-import json
+import json, os
 
 app = Flask(__name__)
 app.secret_key = b'\x08\x19\xf3\x0e\xfb\x80\x11\x13\x13\xb8\x82c\x99}\x9e{'
@@ -38,7 +38,13 @@ def _exceldata(conf):
         return pickle.load(f)
 
 def from_form(input_cells, form):
-    return {item['id']:getattr(form,item['id']).data for item in input_cells}
+    def value(item):
+        v = getattr(form,item['id']).data
+        if "percent" in item:
+            return v/100.0 if v else 0
+        else:
+            return v
+    return {item['id']:value(item) for item in input_cells}
 
 def prepare_inputs(conf, input_cells, form):
     """
@@ -51,12 +57,23 @@ def prepare_inputs(conf, input_cells, form):
     inputs['input_cells'] = from_form(input_cells, form)
     return inputs
 
+def get_tool_info():
+    conffiles = [f for f in os.listdir() if f.endswith("yaml") and os.path.isfile(f)]
+    d = {}
+    for file in conffiles:
+        with open(file) as f:
+            conf = yaml.load(f)
+            d[file.split(".")[0]] = conf['title']
+    return d
+
 @app.route("/", methods = ["GET"])
 def index():
-    return "Use yaml filename after without extrension /, to see the webapp"
+    d = get_tool_info()
+    return render_template("index.html", title="Excel Web Tool", toolinfo=d)
 
 @app.route("/<toolname>", methods = ["GET","POST"])
 def compute(toolname):
+    d = get_tool_info()
     conf  = prepare_data(toolname + ".yaml" )
     exceldata = _exceldata(conf)
     Form = forms.get_form(conf['input_cells'], exceldata)
@@ -68,15 +85,26 @@ def compute(toolname):
             return redirect(url_for('advanced_compute', toolname=toolname), code=307)#post
         else:
             inputs = prepare_inputs(conf, conf['input_cells'], form)
+            params = [v for v in inputs['input_cells'].values()]
             excelexec.compute(exceldata,inputs)
             o = get_range(exceldata,  excelrange(conf['output']))
             chartdata = charts.process_chartdata(exceldata, conf)
-            return render_template("table.html", toolname=toolname, output=o, chartdata=chartdata)
+            return render_template("table.html", toolname=toolname, output=o, title=conf['title'],
+                                    toolinfo=d, chartdata=chartdata, params=params)
 
-    return render_template("inputform.html", toolname=toolname, form=form, **advanced)
+    return render_template("inputform.html", toolname=toolname,
+                            form=form, title=conf['title'],
+                            toolinfo = d,
+                            **advanced)
 
 def get_other_data(exceldata, advanced_inputs, itemname="default"):
-    return {c['id']:exceldata.get(c[itemname]) for c in advanced_inputs}
+    def value(item):
+        v = exceldata.get(item[itemname])
+        if "percent" in item and itemname=="default":
+            return v*100.0 if v else 0
+        else:
+            return v
+    return {c['id']:value(c) for c in advanced_inputs}
 
 def pre_execute_cells(exceldata, advanced_inputs):
     ids = ",".join([item['id'] for item in advanced_inputs])
@@ -87,12 +115,14 @@ def pre_execute_cells(exceldata, advanced_inputs):
 
 @app.route("/advanced/<toolname>", methods = ["POST"])
 def advanced_compute(toolname):
+    d = get_tool_info()
     conf  = prepare_data(toolname + ".yaml" )
     exceldata = _exceldata(conf)
     Form1 = forms.get_form(conf['input_cells'] , exceldata)
     form1 = Form1()
 
     inputs = prepare_inputs(conf, conf['input_cells'], form1)
+    params = [v for v in inputs['input_cells'].values()]
     excelexec.handle_macro(exceldata, inputs)
     pre_execute_cells(exceldata, conf['advanced_inputs'])
 
@@ -106,11 +136,13 @@ def advanced_compute(toolname):
         excelexec.compute(exceldata,inputs)
         o = get_range(exceldata,  excelrange(conf['output']))
         chartdata = charts.process_chartdata(exceldata, conf)
-        return render_template("table.html", toolname=toolname, output=o, chartdata=chartdata)
+        return render_template("table.html", toolname=toolname, output=o,
+                                title=conf['title'], toolinfo=d,chartdata=chartdata)
     else:
         defaults = get_other_data(exceldata, conf['advanced_inputs'], "default")
         units = get_other_data(exceldata, conf['advanced_inputs'], "unit")
-        return render_template("advancedform.html", toolname=toolname,
+        return render_template("advancedform.html", toolname=toolname, title=conf['title'],
+                                toolinfo=d,params=params,
                                 form1=form1, form2= form2, defaults=defaults, units=units)
 
 if __name__=="__main__":

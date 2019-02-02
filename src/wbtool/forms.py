@@ -29,7 +29,18 @@ def create_field(fielddata, data):
         }
     name = fielddata['id']
     fieldclass = typemap[fielddata['ui']]
-    kwargs= {'default':get_value(fielddata.get('value', None), data),
+
+    def value(v):
+        if fielddata['ui'] in ['int', 'float']:
+            return v if v else 0
+        return v
+
+    def percent(v):
+        if "percent" in fielddata:
+            return v*100 if v else 0
+        else:
+            return value(v)
+    kwargs= {'default':percent(get_value(fielddata.get('value', None), data)),
              'label':get_value(fielddata.get('description', None), data),
              'validators': validators_(fielddata),
              'id':name,

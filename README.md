@@ -24,15 +24,18 @@ optional arguments:
 ```
 python -m venv FOLDERPATH
 ```
-5. activate virtualenv using
+here FOLDERPATH is some location where virtual environment will store packages.
+
+5. activate virtualenv by excexuting following command on command prompt.
 ```
 source FODERPATH/bin/activate
 ```
-on windows use
+on windows use cmd
 ```
 FOLDERPATH\bin\activate
 ```
-6. run following command in activated environment
+
+6. run following commands in activated environment
 ```
 python xlwb/src/setup.py install
 cd xlwb/src/wbtool

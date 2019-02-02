@@ -1,7 +1,6 @@
-<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-<html>
-  <head>
-    <title>{{toolname|capitalize}}</title>
+{% extends "index.html" %}
+{%block head%}
+    {{super()}}
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     <script type="text/javascript">
       google.charts.load('current', {'packages':['corechart', 'table']});
@@ -38,15 +37,20 @@
         {%- endfor %}
       }
     </script>
-  </head>
-  <body>
+  {%endblock%}
+{% block content %}
     {%- for chart_conf in chartdata %}
         {%- for chart, conf in chart_conf['types'].items() %}
           <div id="{{ [chart_conf['id'], chart]|join('_') }}" style="{{ conf['style'] }}"></div>
         {%- endfor %}
     {%- endfor %}
-  </body>
-  <footer>
-    <p>Created by Simple Solutions.</p>
-  </footer>
-</html>
+{%endblock%}
+{% block sidebar %}
+      <h2>Parameters</h2>
+
+      <ul>
+        {%- for item in params %}
+        <li>{{item}}</li>
+        {%endfor%}
+      </ul>
+{% endblock %}

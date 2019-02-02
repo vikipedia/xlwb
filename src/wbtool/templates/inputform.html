@@ -1,9 +1,5 @@
-<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-<html>
-<head>
-<title>{{toolname|capitalize}}</title>
-</head>
-<body>
+{% extends "index.html" %}
+{% block content %}
 <form method="POST" action="/{{toolname}}">
   {{ form.csrf_token }}
   <table>
@@ -24,8 +20,4 @@
     </tr>
   </table>
 </form>
-</body>
-<footer>
-  <p>Created by Simple Solutions.</p>
-</footer>
-</html>
+{% endblock %}
