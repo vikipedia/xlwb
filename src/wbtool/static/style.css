@@ -53,6 +53,12 @@ p, input, li {
   color: #2a2a2a;
 }
 
+.errors {
+  background-color: lightpink;
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
 h1 {
   font-size: 4rem;
   text-align: center;

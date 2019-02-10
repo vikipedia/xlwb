@@ -85,12 +85,11 @@ def compute(toolname):
             return redirect(url_for('advanced_compute', toolname=toolname), code=307)#post
         else:
             inputs = prepare_inputs(conf, conf['input_cells'], form)
-            params = [v for v in inputs['input_cells'].values()]
             excelexec.compute(exceldata,inputs)
             o = get_range(exceldata,  excelrange(conf['output']))
             chartdata = charts.process_chartdata(exceldata, conf)
             return render_template("table.html", toolname=toolname, output=o, title=conf['title'],
-                                    toolinfo=d, chartdata=chartdata, params=params)
+                                    toolinfo=d, chartdata=chartdata, params=get_params(form))
 
     return render_template("inputform.html", toolname=toolname,
                             form=form, title=conf['title'],
@@ -111,6 +110,14 @@ def pre_execute_cells(exceldata, advanced_inputs):
     excelexec.compute_range(exceldata, ids)
     defaults =  ",".join([item['default'] for item in advanced_inputs if "default" in item])
     excelexec.compute_range(exceldata, defaults)
+
+
+def get_params(*forms):
+    fields = []
+    for form in forms:
+        fl  = [(f.label, f.data) for f in form.get_fields_() if f.id!="csrf_token"]
+        fields.extend(fl)
+    return fields
 
 
 @app.route("/advanced/<toolname>", methods = ["POST"])
@@ -136,13 +143,15 @@ def advanced_compute(toolname):
         excelexec.compute(exceldata,inputs)
         o = get_range(exceldata,  excelrange(conf['output']))
         chartdata = charts.process_chartdata(exceldata, conf)
-        return render_template("table.html", toolname=toolname, output=o,
+        return render_template("table.html", toolname=toolname, output=o,params=get_params(form1, form2),
                                 title=conf['title'], toolinfo=d,chartdata=chartdata)
+    elif "basic" in request.form:
+        return redirect(url_for("compute", toolname=toolname))
     else:
         defaults = get_other_data(exceldata, conf['advanced_inputs'], "default")
         units = get_other_data(exceldata, conf['advanced_inputs'], "unit")
         return render_template("advancedform.html", toolname=toolname, title=conf['title'],
-                                toolinfo=d,params=params,
+                                toolinfo=d,
                                 form1=form1, form2= form2, defaults=defaults, units=units)
 
 if __name__=="__main__":

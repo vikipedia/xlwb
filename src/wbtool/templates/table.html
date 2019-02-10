@@ -46,11 +46,11 @@
     {%- endfor %}
 {%endblock%}
 {% block sidebar %}
-      <h2>Parameters</h2>
+      <h3>Parameters</h3>
 
-      <ul>
-        {%- for item in params %}
-        <li>{{item}}</li>
-        {%endfor%}
-      </ul>
+      <div>
+        {%- for desc, value in params %}
+            <div class="params">{{desc}} = {{value}}</div>
+        {%- endfor %}
+      </div>
 {% endblock %}
