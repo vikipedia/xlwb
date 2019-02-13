@@ -19,6 +19,7 @@
 {% block content %}
 <form method="POST" action="/advanced/{{toolname}}">
   {{ form1.csrf_token }}
+  {{ form2.csrf_token }}
   <table>
     {% for formfield in form1.get_fields_() %}
     {{ view_field(formfield) }}
