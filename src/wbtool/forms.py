@@ -1,8 +1,11 @@
 from wtforms import StringField, IntegerField, FloatField
 from wtforms import SelectField, BooleanField, validators
 from flask_wtf import FlaskForm
+import re
 
 import collections
+
+
 
 def validators_(fielddata):
     fd= fielddata
@@ -12,6 +15,21 @@ def validators_(fielddata):
     elif fielddata['ui'] == "text":
         v.append(validators.Length(min=fd.get('minlen',0),max=fd.get('maxlen',30)))
     return v
+
+def get_format(fielddata):
+
+    if "format" in fielddata:
+        nums = re.compile(r'(0*)\.?(0*)(%)?')
+        f = fielddata['format']
+        g = nums.match(f)
+    else:
+        return "{}", None
+
+    if f.strip().lower()=="general" or not g:
+        return "{}", None
+    else:
+        x,y,z = g.groups()
+        return "{"+ ":{}.{}f".format(len(x), len(y)) + "}", z
 
 
 def get_value(v, data):
@@ -35,12 +53,14 @@ def create_field(fielddata, data):
             return v if v else 0
         return v
 
-    def percent(v):
-        if "percent" in fielddata:
-            return v*100 if v else 0
+    def format_(v):
+        f,percent = get_format(fielddata)
+        if percent :
+            return f.format(v*100 if v else 0)
         else:
-            return value(v)
-    kwargs= {'default':percent(get_value(fielddata.get('value', None), data)),
+            return f.format(value(v))
+
+    kwargs= {'default':format_(get_value(fielddata.get('value', None), data)),
              'label':get_value(fielddata.get('description', None), data),
              'validators': validators_(fielddata),
              'id':name,

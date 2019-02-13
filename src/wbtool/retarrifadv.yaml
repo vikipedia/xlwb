@@ -1,108 +1,139 @@
-title: Re Tarrif And Financial Analysis
 advanced_inputs:
-- {default: Inputs&Summary!E34, description: Inputs&Summary!C34, id: Inputs&Summary!D34,
-  name: Inputs&Summary!D34, type: float, ui: float, unit: Inputs&Summary!F34, value: Inputs&Summary!D34}
-- {default: Inputs&Summary!E35, description: Inputs&Summary!C35, id: Inputs&Summary!D35,
-  name: Inputs&Summary!D35, type: float, ui: float, unit: Inputs&Summary!F35, value: Inputs&Summary!D35, percent: true}
-- {default: Inputs&Summary!E37, description: Inputs&Summary!C37, id: Inputs&Summary!D37,
-  name: Inputs&Summary!D37, type: float, ui: float, unit: Inputs&Summary!F37, value: Inputs&Summary!D37, percent: true}
-- {default: Inputs&Summary!E39, description: Inputs&Summary!C39, id: Inputs&Summary!D39,
-  name: Inputs&Summary!D39, type: float, ui: float, unit: Inputs&Summary!F39, value: Inputs&Summary!D39, percent: true}
-- {default: Inputs&Summary!E40, description: Inputs&Summary!C40, id: Inputs&Summary!D40,
-  name: Inputs&Summary!D40, type: float, ui: float, unit: Inputs&Summary!F40, value: Inputs&Summary!D40}
-- {default: Inputs&Summary!E41, description: Inputs&Summary!C41, id: Inputs&Summary!D41,
-  name: Inputs&Summary!D41, type: float, ui: float, unit: Inputs&Summary!F41, value: Inputs&Summary!D41}
-- {default: Inputs&Summary!E42, description: Inputs&Summary!C42, id: Inputs&Summary!D42,
+- {default: Inputs&Summary!E34, description: Inputs&Summary!C34, format: General,
+  id: Inputs&Summary!D34, name: Inputs&Summary!D34, type: float, ui: float, unit: Inputs&Summary!F34,
+  value: Inputs&Summary!D34}
+- {default: Inputs&Summary!E35, description: Inputs&Summary!C35, format: 0.00%, id: Inputs&Summary!D35,
+  name: Inputs&Summary!D35, type: float, ui: float, unit: Inputs&Summary!F35, value: Inputs&Summary!D35}
+- {default: Inputs&Summary!E36, description: Inputs&Summary!C36, format: '0.00', id: Inputs&Summary!D36,
+  name: Inputs&Summary!D36, type: float, ui: float, unit: Inputs&Summary!F36, value: Inputs&Summary!D36}
+- {default: Inputs&Summary!E37, description: Inputs&Summary!C37, format: 0.00%, id: Inputs&Summary!D37,
+  name: Inputs&Summary!D37, type: float, ui: float, unit: Inputs&Summary!F37, value: Inputs&Summary!D37}
+- {default: Inputs&Summary!E38, description: Inputs&Summary!C38, format: '0.00', id: Inputs&Summary!D38,
+  name: Inputs&Summary!D38, type: float, ui: float, unit: Inputs&Summary!F38, value: Inputs&Summary!D38}
+- {default: Inputs&Summary!E39, description: Inputs&Summary!C39, format: 0.00%, id: Inputs&Summary!D39,
+  name: Inputs&Summary!D39, type: float, ui: float, unit: Inputs&Summary!F39, value: Inputs&Summary!D39}
+- {default: Inputs&Summary!E40, description: Inputs&Summary!C40, format: General,
+  id: Inputs&Summary!D40, name: Inputs&Summary!D40, type: float, ui: float, unit: Inputs&Summary!F40,
+  value: Inputs&Summary!D40}
+- {default: Inputs&Summary!E41, description: Inputs&Summary!C41, format: '0.000',
+  id: Inputs&Summary!D41, name: Inputs&Summary!D41, type: float, ui: float, unit: Inputs&Summary!F41,
+  value: Inputs&Summary!D41}
+- {default: Inputs&Summary!E42, description: Inputs&Summary!C42, format: '0.00', id: Inputs&Summary!D42,
   name: Inputs&Summary!D42, type: float, ui: float, unit: Inputs&Summary!F42, value: Inputs&Summary!D42}
-- {default: Inputs&Summary!E43, description: Inputs&Summary!C43, id: Inputs&Summary!D43,
-  name: Inputs&Summary!D43, type: float, ui: float, unit: Inputs&Summary!F43, value: Inputs&Summary!D43, percent: true}
-- {default: Inputs&Summary!E44, description: Inputs&Summary!C44, id: Inputs&Summary!D44,
-  name: Inputs&Summary!D44, type: float, ui: float, unit: Inputs&Summary!F44, value: Inputs&Summary!D44, percent: true}
-- {default: Inputs&Summary!E47, description: Inputs&Summary!C47, id: Inputs&Summary!D47,
-  name: Inputs&Summary!D47, type: float, ui: float, unit: Inputs&Summary!F47, value: Inputs&Summary!D47, percent: true}
-- {default: Inputs&Summary!E50, description: Inputs&Summary!C50, id: Inputs&Summary!D50,
-  name: Inputs&Summary!D50, type: float, ui: float, unit: Inputs&Summary!F50, value: Inputs&Summary!D50, percent: true}
-- {default: Inputs&Summary!E51, description: Inputs&Summary!C51, id: Inputs&Summary!D51,
+- {default: Inputs&Summary!E43, description: Inputs&Summary!C43, format: 0.00%, id: Inputs&Summary!D43,
+  name: Inputs&Summary!D43, type: float, ui: float, unit: Inputs&Summary!F43, value: Inputs&Summary!D43}
+- {default: Inputs&Summary!E44, description: Inputs&Summary!C44, format: 0%, id: Inputs&Summary!D44,
+  name: Inputs&Summary!D44, type: float, ui: float, unit: Inputs&Summary!F44, value: Inputs&Summary!D44}
+- {default: Inputs&Summary!E47, description: Inputs&Summary!C47, format: 0.00%, id: Inputs&Summary!D47,
+  name: Inputs&Summary!D47, type: float, ui: float, unit: Inputs&Summary!F47, value: Inputs&Summary!D47}
+- {default: Inputs&Summary!E48, description: Inputs&Summary!C48, format: '0.000',
+  id: Inputs&Summary!D48, name: Inputs&Summary!D48, type: float, ui: float, unit: Inputs&Summary!F48,
+  value: Inputs&Summary!D48}
+- {default: Inputs&Summary!E49, description: Inputs&Summary!C49, format: '0.000',
+  id: Inputs&Summary!D49, name: Inputs&Summary!D49, type: float, ui: float, unit: Inputs&Summary!F49,
+  value: Inputs&Summary!D49}
+- {default: Inputs&Summary!E50, description: Inputs&Summary!C50, format: 0.00%, id: Inputs&Summary!D50,
+  name: Inputs&Summary!D50, type: float, ui: float, unit: Inputs&Summary!F50, value: Inputs&Summary!D50}
+- {default: Inputs&Summary!E51, description: Inputs&Summary!C51, format: '0', id: Inputs&Summary!D51,
   name: Inputs&Summary!D51, type: float, ui: float, unit: Inputs&Summary!F51, value: Inputs&Summary!D51}
-- {default: Inputs&Summary!E52, description: Inputs&Summary!C52, id: Inputs&Summary!D52,
+- {default: Inputs&Summary!E52, description: Inputs&Summary!C52, format: '0', id: Inputs&Summary!D52,
   name: Inputs&Summary!D52, type: float, ui: float, unit: Inputs&Summary!F52, value: Inputs&Summary!D52}
-- {default: Inputs&Summary!E53, description: Inputs&Summary!C53, id: Inputs&Summary!D53,
-  name: Inputs&Summary!D53, type: float, ui: float, unit: Inputs&Summary!F53, value: Inputs&Summary!D53}
-- {default: Inputs&Summary!E54, description: Inputs&Summary!C54, id: Inputs&Summary!D54,
-  name: Inputs&Summary!D54, type: float, ui: float, unit: Inputs&Summary!F54, value: Inputs&Summary!D54}
-- {default: Inputs&Summary!E55, description: Inputs&Summary!C55, id: Inputs&Summary!D55,
-  name: Inputs&Summary!D55, type: float, ui: float, unit: Inputs&Summary!F55, value: Inputs&Summary!D55, percent: true}
-- {default: Inputs&Summary!E56, description: Inputs&Summary!C56, id: Inputs&Summary!D56,
-  name: Inputs&Summary!D56, type: float, ui: float, unit: Inputs&Summary!F56, value: Inputs&Summary!D56}
-- {default: Inputs&Summary!E57, description: Inputs&Summary!C57, id: Inputs&Summary!D57,
-  name: Inputs&Summary!D57, type: float, ui: float, unit: Inputs&Summary!F57, value: Inputs&Summary!D57}
-- {default: Inputs&Summary!E58, description: Inputs&Summary!C58, id: Inputs&Summary!D58,
-  name: Inputs&Summary!D58, type: float, ui: int, unit: Inputs&Summary!F58, value: Inputs&Summary!D58}
-- {default: Inputs&Summary!E59, description: Inputs&Summary!C59, id: Inputs&Summary!D59,
-  name: Inputs&Summary!D59, type: float, ui: int, unit: Inputs&Summary!F59, value: Inputs&Summary!D59}
-- {default: Inputs&Summary!E60, description: Inputs&Summary!C60, id: Inputs&Summary!D60,
-  name: Inputs&Summary!D60, type: float, ui: float, unit: Inputs&Summary!F60, value: Inputs&Summary!D60, percent: true}
-- {default: Inputs&Summary!E61, description: Inputs&Summary!C61, id: Inputs&Summary!D61,
-  name: Inputs&Summary!D61, type: float, ui: float, unit: Inputs&Summary!F61, value: Inputs&Summary!D61, percent: true}
-- {default: Inputs&Summary!E64, description: Inputs&Summary!C64, id: Inputs&Summary!D64,
-  name: Inputs&Summary!D64, type: float, ui: float, unit: Inputs&Summary!F64, value: Inputs&Summary!D64, percent: true}
-- {default: Inputs&Summary!E66, description: Inputs&Summary!C66, id: Inputs&Summary!D66,
-  name: Inputs&Summary!D66, type: float, ui: float, unit: Inputs&Summary!F66, value: Inputs&Summary!D66, percent: true}
-- {default: Inputs&Summary!E67, description: Inputs&Summary!C67, id: Inputs&Summary!D67,
-  name: Inputs&Summary!D67, type: float, ui: float, unit: Inputs&Summary!F67, value: Inputs&Summary!D67, percent: true}
-- {default: Inputs&Summary!E68, description: Inputs&Summary!C68, id: Inputs&Summary!D68,
-  name: Inputs&Summary!D68, type: float, ui: float, unit: Inputs&Summary!F68, value: Inputs&Summary!D68}
-- {default: Inputs&Summary!E70, description: Inputs&Summary!C70, id: Inputs&Summary!D70,
-  name: Inputs&Summary!D70, type: float, ui: float, unit: Inputs&Summary!F70, value: Inputs&Summary!D70, percent: true}
-- {default: Inputs&Summary!E71, description: Inputs&Summary!C71, id: Inputs&Summary!D71,
-  name: Inputs&Summary!D71, type: float, ui: float, unit: Inputs&Summary!F71, value: Inputs&Summary!D71, percent: true}
-- {default: Inputs&Summary!E72, description: Inputs&Summary!C72, id: Inputs&Summary!D72,
-  name: Inputs&Summary!D72, type: float, ui: float, unit: Inputs&Summary!F72, value: Inputs&Summary!D72, percent: true}
-- {default: Inputs&Summary!E73, description: Inputs&Summary!C73, id: Inputs&Summary!D73,
-  name: Inputs&Summary!D73, type: float, ui: float, unit: Inputs&Summary!F73, value: Inputs&Summary!D73, percent: true}
-- {default: Inputs&Summary!E76, description: Inputs&Summary!C76, id: Inputs&Summary!D76,
-  name: Inputs&Summary!D76, type: float, ui: float, unit: Inputs&Summary!F76, value: Inputs&Summary!D76, percent: true}
-- {default: Inputs&Summary!E77, description: Inputs&Summary!C77, id: Inputs&Summary!D77,
-  name: Inputs&Summary!D77, type: float, ui: float, unit: Inputs&Summary!F77, value: Inputs&Summary!D77, percent: true}
-- {default: Inputs&Summary!E78, description: Inputs&Summary!C78, id: Inputs&Summary!D78,
+- {default: Inputs&Summary!E53, description: Inputs&Summary!C53, format: General,
+  id: Inputs&Summary!D53, name: Inputs&Summary!D53, type: float, ui: float, unit: Inputs&Summary!F53,
+  value: Inputs&Summary!D53}
+- {default: Inputs&Summary!E54, description: Inputs&Summary!C54, format: General,
+  id: Inputs&Summary!D54, name: Inputs&Summary!D54, type: float, ui: float, unit: Inputs&Summary!F54,
+  value: Inputs&Summary!D54}
+- {default: Inputs&Summary!E55, description: Inputs&Summary!C55, format: 0%, id: Inputs&Summary!D55,
+  name: Inputs&Summary!D55, type: float, ui: float, unit: Inputs&Summary!F55, value: Inputs&Summary!D55}
+- {default: Inputs&Summary!E56, description: Inputs&Summary!C56, format: General,
+  id: Inputs&Summary!D56, name: Inputs&Summary!D56, type: float, ui: float, unit: Inputs&Summary!F56,
+  value: Inputs&Summary!D56}
+- {default: Inputs&Summary!E57, description: Inputs&Summary!C57, format: General,
+  id: Inputs&Summary!D57, name: Inputs&Summary!D57, type: float, ui: float, unit: Inputs&Summary!F57,
+  value: Inputs&Summary!D57}
+- {default: Inputs&Summary!E58, description: Inputs&Summary!C58, format: General,
+  id: Inputs&Summary!D58, name: Inputs&Summary!D58, type: float, ui: float, unit: Inputs&Summary!F58,
+  value: Inputs&Summary!D58}
+- {default: Inputs&Summary!E59, description: Inputs&Summary!C59, format: General,
+  id: Inputs&Summary!D59, name: Inputs&Summary!D59, type: float, ui: float, unit: Inputs&Summary!F59,
+  value: Inputs&Summary!D59}
+- {default: Inputs&Summary!E60, description: Inputs&Summary!C60, format: 0.00%, id: Inputs&Summary!D60,
+  name: Inputs&Summary!D60, type: float, ui: float, unit: Inputs&Summary!F60, value: Inputs&Summary!D60}
+- {default: Inputs&Summary!E61, description: Inputs&Summary!C61, format: 0.00%, id: Inputs&Summary!D61,
+  name: Inputs&Summary!D61, type: float, ui: float, unit: Inputs&Summary!F61, value: Inputs&Summary!D61}
+- {default: Inputs&Summary!E64, description: Inputs&Summary!C64, format: 0.00%, id: Inputs&Summary!D64,
+  name: Inputs&Summary!D64, type: float, ui: float, unit: Inputs&Summary!F64, value: Inputs&Summary!D64}
+- {default: Inputs&Summary!E65, description: Inputs&Summary!C65, format: '0', id: Inputs&Summary!D65,
+  name: Inputs&Summary!D65, type: float, ui: float, unit: Inputs&Summary!F65, value: Inputs&Summary!D65}
+- {default: Inputs&Summary!E66, description: Inputs&Summary!C66, format: 0.00%, id: Inputs&Summary!D66,
+  name: Inputs&Summary!D66, type: float, ui: float, unit: Inputs&Summary!F66, value: Inputs&Summary!D66}
+- {default: Inputs&Summary!E67, description: Inputs&Summary!C67, format: 0.00%, id: Inputs&Summary!D67,
+  name: Inputs&Summary!D67, type: float, ui: float, unit: Inputs&Summary!F67, value: Inputs&Summary!D67}
+- {default: Inputs&Summary!E68, description: Inputs&Summary!C68, format: General,
+  id: Inputs&Summary!D68, name: Inputs&Summary!D68, type: float, ui: float, unit: Inputs&Summary!F68,
+  value: Inputs&Summary!D68}
+- {default: Inputs&Summary!E69, description: Inputs&Summary!C69, format: General,
+  id: Inputs&Summary!D69, name: Inputs&Summary!D69, type: float, ui: float, unit: Inputs&Summary!F69,
+  value: Inputs&Summary!D69}
+- {default: Inputs&Summary!E70, description: Inputs&Summary!C70, format: 0.00%, id: Inputs&Summary!D70,
+  name: Inputs&Summary!D70, type: float, ui: float, unit: Inputs&Summary!F70, value: Inputs&Summary!D70}
+- {default: Inputs&Summary!E71, description: Inputs&Summary!C71, format: 0.00%, id: Inputs&Summary!D71,
+  name: Inputs&Summary!D71, type: float, ui: float, unit: Inputs&Summary!F71, value: Inputs&Summary!D71}
+- {default: Inputs&Summary!E72, description: Inputs&Summary!C72, format: 0%, id: Inputs&Summary!D72,
+  name: Inputs&Summary!D72, type: float, ui: float, unit: Inputs&Summary!F72, value: Inputs&Summary!D72}
+- {default: Inputs&Summary!E73, description: Inputs&Summary!C73, format: 0%, id: Inputs&Summary!D73,
+  name: Inputs&Summary!D73, type: float, ui: float, unit: Inputs&Summary!F73, value: Inputs&Summary!D73}
+- {default: Inputs&Summary!E76, description: Inputs&Summary!C76, format: 0.000%, id: Inputs&Summary!D76,
+  name: Inputs&Summary!D76, type: float, ui: float, unit: Inputs&Summary!F76, value: Inputs&Summary!D76}
+- {default: Inputs&Summary!E77, description: Inputs&Summary!C77, format: 0%, id: Inputs&Summary!D77,
+  name: Inputs&Summary!D77, type: float, ui: float, unit: Inputs&Summary!F77, value: Inputs&Summary!D77}
+- {default: Inputs&Summary!E78, description: Inputs&Summary!C78, format: '0', id: Inputs&Summary!D78,
   name: Inputs&Summary!D78, type: float, ui: float, unit: Inputs&Summary!F78, value: Inputs&Summary!D78}
-- {default: Inputs&Summary!E79, description: Inputs&Summary!C79, id: Inputs&Summary!D79,
+- {default: Inputs&Summary!E79, description: Inputs&Summary!C79, format: '0', id: Inputs&Summary!D79,
   name: Inputs&Summary!D79, type: float, ui: float, unit: Inputs&Summary!F79, value: Inputs&Summary!D79}
-- {default: Inputs&Summary!E80, description: Inputs&Summary!C80, id: Inputs&Summary!D80,
+- {default: Inputs&Summary!E80, description: Inputs&Summary!C80, format: '0', id: Inputs&Summary!D80,
   name: Inputs&Summary!D80, type: float, ui: float, unit: Inputs&Summary!F80, value: Inputs&Summary!D80}
-- {default: Inputs&Summary!E81, description: Inputs&Summary!C81, id: Inputs&Summary!D81,
-  name: Inputs&Summary!D81, type: float, ui: float, unit: Inputs&Summary!F81, value: Inputs&Summary!D81}
-- {default: Inputs&Summary!E82, description: Inputs&Summary!C82, id: Inputs&Summary!D82,
-  name: Inputs&Summary!D82, type: float, ui: float, unit: Inputs&Summary!F82, value: Inputs&Summary!D82}
-- {default: Inputs&Summary!E85, description: Inputs&Summary!C85, id: Inputs&Summary!D85,
-  name: Inputs&Summary!D85, type: float, ui: float, unit: Inputs&Summary!F85, value: Inputs&Summary!D85, percent: true}
-- {default: Inputs&Summary!E86, description: Inputs&Summary!C86, id: Inputs&Summary!D86,
-  name: Inputs&Summary!D86, type: float, ui: float, unit: Inputs&Summary!F86, value: Inputs&Summary!D86}
-- {default: Inputs&Summary!E87, description: Inputs&Summary!C87, id: Inputs&Summary!D87,
-  name: Inputs&Summary!D87, type: float, ui: float, unit: Inputs&Summary!F87, value: Inputs&Summary!D87, percent: true}
-- {default: Inputs&Summary!E88, description: Inputs&Summary!C88, id: Inputs&Summary!D88,
-  name: Inputs&Summary!D88, type: float, ui: float, unit: Inputs&Summary!F88, value: Inputs&Summary!D88, percent: true}
-- {default: Inputs&Summary!E89, description: Inputs&Summary!C89, id: Inputs&Summary!D89,
-  name: Inputs&Summary!D89, type: float, ui: float, unit: Inputs&Summary!F89, value: Inputs&Summary!D89, percent: true}
-- {default: Inputs&Summary!E90, description: Inputs&Summary!C90, id: Inputs&Summary!D90,
+- {default: Inputs&Summary!E81, description: Inputs&Summary!C81, format: 0_);\(0\),
+  id: Inputs&Summary!D81, name: Inputs&Summary!D81, type: float, ui: float, unit: Inputs&Summary!F81,
+  value: Inputs&Summary!D81}
+- {default: Inputs&Summary!E82, description: Inputs&Summary!C82, format: 0_);\(0\),
+  id: Inputs&Summary!D82, name: Inputs&Summary!D82, type: float, ui: float, unit: Inputs&Summary!F82,
+  value: Inputs&Summary!D82}
+- {default: Inputs&Summary!E85, description: Inputs&Summary!C85, format: 0.00%, id: Inputs&Summary!D85,
+  name: Inputs&Summary!D85, type: float, ui: float, unit: Inputs&Summary!F85, value: Inputs&Summary!D85}
+- {default: Inputs&Summary!E86, description: Inputs&Summary!C86, format: General,
+  id: Inputs&Summary!D86, name: Inputs&Summary!D86, type: float, ui: float, unit: Inputs&Summary!F86,
+  value: Inputs&Summary!D86}
+- {default: Inputs&Summary!E87, description: Inputs&Summary!C87, format: 0.00%, id: Inputs&Summary!D87,
+  name: Inputs&Summary!D87, type: float, ui: float, unit: Inputs&Summary!F87, value: Inputs&Summary!D87}
+- {default: Inputs&Summary!E88, description: Inputs&Summary!C88, format: 0%, id: Inputs&Summary!D88,
+  name: Inputs&Summary!D88, type: float, ui: float, unit: Inputs&Summary!F88, value: Inputs&Summary!D88}
+- {default: Inputs&Summary!E89, description: Inputs&Summary!C89, format: 0.00%, id: Inputs&Summary!D89,
+  name: Inputs&Summary!D89, type: float, ui: float, unit: Inputs&Summary!F89, value: Inputs&Summary!D89}
+- {default: Inputs&Summary!E90, description: Inputs&Summary!C90, format: '0.00', id: Inputs&Summary!D90,
   name: Inputs&Summary!D90, type: float, ui: float, unit: Inputs&Summary!F90, value: Inputs&Summary!D90}
-- {default: Inputs&Summary!E93, description: Inputs&Summary!C93, id: Inputs&Summary!D93,
-  name: Inputs&Summary!D93, type: float, ui: float, unit: Inputs&Summary!F93, value: Inputs&Summary!D93}
-- {default: Inputs&Summary!E94, description: Inputs&Summary!C94, id: Inputs&Summary!D94,
-  name: Inputs&Summary!D94, type: float, ui: float, unit: Inputs&Summary!F94, value: Inputs&Summary!D94, percent: true}
-- {default: Inputs&Summary!E95, description: Inputs&Summary!C95, id: Inputs&Summary!D95,
+- {default: Inputs&Summary!E93, description: Inputs&Summary!C93, format: General,
+  id: Inputs&Summary!D93, name: Inputs&Summary!D93, type: float, ui: float, unit: Inputs&Summary!F93,
+  value: Inputs&Summary!D93}
+- {default: Inputs&Summary!E94, description: Inputs&Summary!C94, format: 0%, id: Inputs&Summary!D94,
+  name: Inputs&Summary!D94, type: float, ui: float, unit: Inputs&Summary!F94, value: Inputs&Summary!D94}
+- {default: Inputs&Summary!E95, description: Inputs&Summary!C95, format: '0.00', id: Inputs&Summary!D95,
   name: Inputs&Summary!D95, type: float, ui: float, unit: Inputs&Summary!F95, value: Inputs&Summary!D95}
-- {default: Inputs&Summary!E96, description: Inputs&Summary!C96, id: Inputs&Summary!D96,
+- {default: Inputs&Summary!E96, description: Inputs&Summary!C96, format: '0.00', id: Inputs&Summary!D96,
   name: Inputs&Summary!D96, type: float, ui: float, unit: Inputs&Summary!F96, value: Inputs&Summary!D96}
-- {default: Inputs&Summary!E97, description: Inputs&Summary!C97, id: Inputs&Summary!D97,
-  name: Inputs&Summary!D97, type: float, ui: float, unit: Inputs&Summary!F97, value: Inputs&Summary!D97, percent: true}
-- {default: Inputs&Summary!E100, description: Inputs&Summary!C100, id: Inputs&Summary!D100,
-  name: Inputs&Summary!D100, type: float, ui: float, unit: Inputs&Summary!F100, value: Inputs&Summary!D100}
-- {default: Inputs&Summary!E101, description: Inputs&Summary!C101, id: Inputs&Summary!D101,
-  name: Inputs&Summary!D101, type: float, ui: float, unit: Inputs&Summary!F101, value: Inputs&Summary!D101}
-- {default: Inputs&Summary!E102, description: Inputs&Summary!C102, id: Inputs&Summary!D102,
-  name: Inputs&Summary!D102, type: float, ui: float, unit: Inputs&Summary!F102, value: Inputs&Summary!D102}
-- {default: Inputs&Summary!E103, description: Inputs&Summary!C103, id: Inputs&Summary!D103,
+- {default: Inputs&Summary!E97, description: Inputs&Summary!C97, format: 0%, id: Inputs&Summary!D97,
+  name: Inputs&Summary!D97, type: float, ui: float, unit: Inputs&Summary!F97, value: Inputs&Summary!D97}
+- {default: Inputs&Summary!E100, description: Inputs&Summary!C100, format: General,
+  id: Inputs&Summary!D100, name: Inputs&Summary!D100, type: float, ui: float, unit: Inputs&Summary!F100,
+  value: Inputs&Summary!D100}
+- {default: Inputs&Summary!E101, description: Inputs&Summary!C101, format: General,
+  id: Inputs&Summary!D101, name: Inputs&Summary!D101, type: float, ui: float, unit: Inputs&Summary!F101,
+  value: Inputs&Summary!D101}
+- {default: Inputs&Summary!E102, description: Inputs&Summary!C102, format: General,
+  id: Inputs&Summary!D102, name: Inputs&Summary!D102, type: float, ui: float, unit: Inputs&Summary!F102,
+  value: Inputs&Summary!D102}
+- {default: Inputs&Summary!E103, description: Inputs&Summary!C103, format: '0', id: Inputs&Summary!D103,
   name: Inputs&Summary!D103, type: float, ui: float, unit: Inputs&Summary!F103, value: Inputs&Summary!D103}
 charts:
 - X: Inputs&Summary!I4:I8
@@ -113,14 +144,14 @@ charts:
   types:
     Table:
       formats:
-        - NumberFormat:
-            columns: [1, 2, 3, 4]
-            options: {fractionDigits: 2}
+      - NumberFormat:
+          columns: [1, 2, 3, 4]
+          options: {fractionDigits: 2}
       options:
         allowHtml: true
         alternatingRowStyle: true
+        cssClassNames: {oddTableRow: odd-row}
         height: 100%
-        cssClassNames: {'oddTableRow': 'odd-row'}
         width: 100%
       style: 'width: 800px; height: 300px'
   xcategory: true
@@ -194,3 +225,5 @@ macro:
   function: HandleTechOrStateChange
   module: RE_Tariff_macros
 output: Inputs&Summary!I3:M8
+title: Re Tarrif And Financial Analysis
+

@@ -1,8 +1,10 @@
 # xlwb
-This project aims at creating automation tool for updating predefined website from a excel sheet
+This project aims at creating automation tool for updating predefined website
+from a excel sheet
 
 How to use it?
-1. If you have excelsheet with some formulas and some data in it, parse it using excelparse.py utility
+1. If you have excelsheet with some formulas and some data in it, parse it using
+ excelparse.py utility
 ```
 python excelparse.py -h
 usage: Excel data generator [-h] [-o OUTPUT] filename
@@ -16,9 +18,11 @@ optional arguments:
                         output filename, if not given input file's name will
                         be used with bin extension.
 ```
-2. Once data for excelsheet is generated using excelparse utility. follow wbtool/guild_inputs.txt to write a yaml file for web application.
+2. Once data for excelsheet is generated using excelparse utility. follow
+wbtool/guild_inputs.txt to write a yaml file for web application.
 
-3. copy exceldata generated using excelrun utility and yaml file in folder wbtool.
+3. copy exceldata generated using excelrun utility and yaml file in folder
+wbtool.
 
 4. create virtualenv with
 ```
@@ -32,7 +36,7 @@ source FODERPATH/bin/activate
 ```
 on windows use cmd
 ```
-FOLDERPATH\bin\activate
+FOLDERPATH\Lib\activate.bat
 ```
 
 6. run following commands in activated environment

@@ -40,8 +40,8 @@ def _exceldata(conf):
 def from_form(input_cells, form):
     def value(item):
         v = getattr(form,item['id']).data
-        if "percent" in item:
-            return v/100.0 if v else 0
+        if "format" in item and "%" in item['format']:
+            return float(v)/100.0 if v else 0
         else:
             return v
     return {item['id']:value(item) for item in input_cells}
@@ -97,10 +97,18 @@ def compute(toolname):
                             **advanced)
 
 def get_other_data(exceldata, advanced_inputs, itemname="default"):
+    def value_(v, item):
+        if item['ui'] in ['int', 'float']:
+            return v if v else 0
+        return v if v else ""
+
     def value(item):
+        f, z = forms.get_format(item)
         v = exceldata.get(item[itemname])
-        if "percent" in item and itemname=="default":
-            return v*100.0 if v else 0
+        if z and itemname=="default":
+            return f.format(v*100.0 if v else 0)
+        elif itemname=="default":
+            return f.format(value_(v, item))
         else:
             return v
     return {c['id']:value(c) for c in advanced_inputs}
