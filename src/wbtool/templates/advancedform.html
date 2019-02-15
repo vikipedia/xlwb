@@ -1,50 +1,63 @@
 <!DOCTYPE html>
 {% extends "form.html" %}
 {% macro render_advanced_field(field, defaults, units) %}
-{% if field.id != "csrf_token" %}
-    <tr>
-      <td>{{ field.label }}</td>
-      <td>{{ field(**kwargs)|safe }}
-      {% if field.errors %}
-        {% for error in field.errors %}
-          <div class=errors>{{ error }} </div>
-        {% endfor %}
-      {% endif %}</td>
-      <td>{{defaults[field.id]}}</td>
-      <td>{{units[field.id]}}</td>
-    </tr>
-{% endif %}
+  {% if field.id != "csrf_token" %}
+      <tr>
+        <td>{{ field.label }}</td>
+        <td>{{ field(**kwargs)|safe }}
+        {% if field.errors %}
+          {% for error in field.errors %}
+            <div class=errors>{{ error }} </div>
+          {% endfor %}
+        {% endif %}</td>
+        <td>{{defaults[field.id]}}</td>
+        <td>{{units[field.id]}}</td>
+      </tr>
+  {% endif %}
+{% endmacro %}
+
+{% macro render_header() %}
+  <tr>
+    <th>desscrption</th>
+    <th>value</th>
+    <th>default</th>
+    <th>unit</th>
+  </tr>
 {% endmacro %}
 
 {% block content %}
 <form method="POST" action="/advanced/{{toolname}}">
   {{ form1.csrf_token }}
   {{ form2.csrf_token }}
-  <table>
-    {% for formfield in form1.get_fields_() %}
-    {{ view_field(formfield) }}
-    {% endfor %}
-    <tr>
-      <td></td>
-      <td><input type="submit" name="basic" value="Basic"></td>
-    </tr>
-  </table>
-  <table>
-    <tr>
-      <th>desscrption</th>
-      <th>value</th>
-      <th>default</th>
-      <th>unit</th>
-    </tr>
-    {% for formfield in form2.get_fields_() %}
-      {{render_advanced_field(formfield, defaults, units)}}
-    {% endfor %}
+  <p>
+    <table>
+      {% for section in form1.get_sections() %}
+      <tr><th colspan=2> {{section}} </th></tr>
 
-    <tr>
-      <td>
-      </td>
-      <td><input type="submit" name="finish" value="Finish"></td>
-    </tr>
-  </table>
+        {% for formfield in form1.get_fields__(section) %}
+        {{ view_field(formfield)}}
+        {% endfor %}
+
+      {% endfor %}
+    </table>
+  </p>
+  <p>
+    <div><input type="submit" name="basic" value="Basic"></div>
+  </p>
+  <p>
+    <table>
+        {{ render_header() }}
+          {% for section in form2.get_sections() %}
+            <tr><th colspan=4>{{section}}</th></tr>
+            {% for formfield in form2.get_fields__(section) %}
+              {{render_advanced_field(formfield, defaults, units)}}
+            {% endfor %}
+          {% endfor %}
+    </table>
+  </p>
+
+  <p>
+      <div style="position=relative;right=0"><input type="submit" name="finish" value="Finish"></div>
+  </p>
 </form>
 {%endblock%}

@@ -74,10 +74,19 @@ def get_form(data, cellmap):
         def get_fields_(self):
             return [getattr(self, name) for name in self._fields]
 
+        def get_fields__(self, section):
+            return (getattr(self, name) for name in sections[section])
+
+        def get_sections(self):
+            return sections.keys()
+
+    sections = {section:[item['id'] for item in data[section]] for section in data}
+
     fields = []
-    for item in data:
-        f = create_field(item, cellmap)
-        setattr(InputsForm, item['id'], f)
-        fields.append(item)
+    for section in data:
+        for item in data[section]:
+            f = create_field(item, cellmap)
+            setattr(InputsForm, item['id'], f)
+            fields.append(item)
 
     return InputsForm

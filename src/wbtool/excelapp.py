@@ -13,17 +13,22 @@ def get_range(data, r):
     return [[data[c] for c in row] for row in r]
 
 
-def evaluate_conf(input_cells, exceldata):
-    for value in input_cells:
-        d = value['description']
-        value['description'] = exceldata.get(d, d)
-        if value['ui'] == "menu":
-            m = value['menudata']
-            if isinstance(m, str) and "!" in m:
-                r = excelrange(m)
-                value['menudata'] = flatten(get_range(exceldata, r))
-            else:
-                value['menudata'] = m
+def evaluate_conf(inputs, exceldata):
+    def evaluate_conf_(input_cells):
+        for value in input_cells:
+            d = value['description']
+            value['description'] = exceldata.get(d, d)
+            if value['ui'] == "menu":
+                m = value['menudata']
+                if isinstance(m, str) and "!" in m:
+                    r = excelrange(m)
+                    value['menudata'] = flatten(get_range(exceldata, r))
+                else:
+                    value['menudata'] = m
+    for section in inputs:
+        print(type(inputs), type(section), "&"*20)
+        print(section, "*"*5)
+        evaluate_conf_(inputs[section])
 
 def prepare_data(conffile):
     print("Reading configuration files....")
@@ -37,14 +42,20 @@ def _exceldata(conf):
     with open(conf['exceldata'], "rb") as f:
         return pickle.load(f)
 
-def from_form(input_cells, form):
-    def value(item):
-        v = getattr(form,item['id']).data
-        if "format" in item and "%" in item['format']:
-            return float(v)/100.0 if v else 0
-        else:
-            return v
-    return {item['id']:value(item) for item in input_cells}
+
+def from_form(inputs,form):
+    def from_form_(input_cells):
+        def value(item):
+            v = getattr(form,item['id']).data
+            if "format" in item and "%" in item['format']:
+                return float(v)/100.0 if v else 0
+            else:
+                return v
+        return {item['id']:value(item) for item in input_cells}
+    d = {}
+    for section in inputs:
+        d.update(from_form_(inputs[section]))
+    return d
 
 def prepare_inputs(conf, input_cells, form):
     """
@@ -111,13 +122,17 @@ def get_other_data(exceldata, advanced_inputs, itemname="default"):
             return f.format(value_(v, item))
         else:
             return v
-    return {c['id']:value(c) for c in advanced_inputs}
+    d = {}
+    for s in advanced_inputs:
+        d.update({c['id']:value(c) for c in advanced_inputs[s]})
+    return d
 
 def pre_execute_cells(exceldata, advanced_inputs):
-    ids = ",".join([item['id'] for item in advanced_inputs])
-    excelexec.compute_range(exceldata, ids)
-    defaults =  ",".join([item['default'] for item in advanced_inputs if "default" in item])
-    excelexec.compute_range(exceldata, defaults)
+    for s in advanced_inputs:
+        ids = ",".join([item['id'] for item in advanced_inputs[s]])
+        excelexec.compute_range(exceldata, ids)
+        defaults =  ",".join([item['default'] for item in advanced_inputs[s] if "default" in item])
+        excelexec.compute_range(exceldata, defaults)
 
 
 def get_params(*forms):

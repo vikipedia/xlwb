@@ -3,11 +3,18 @@
 <form method="POST" action="/{{toolname}}">
   {{ form.csrf_token }}
   <table>
-    {% for formfield in form.get_fields_() %}
-    {{ render_field(formfield) }}
-    {% endfor %}
-    <tr>
+    {% for section in form.get_sections() %}
+      <tr><th colspan=2> {{section}} </th></tr>
 
+      {% for formfield in form.get_fields__(section) %}
+        {{ render_field(formfield)}}
+      {% endfor %}
+
+
+    {% endfor %}
+  </table>
+  <table>
+    <tr>
       <td>
         {% if advanced is defined %}
 	         <input type="submit" name="advanced" value="Advanced">

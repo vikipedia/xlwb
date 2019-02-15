@@ -18,12 +18,13 @@ charts:
 
 exceldata: Electric Storage Cost Calculator_v2_12-10-18.bin
 input_cells:
-- {description: Calculations!C3, id: Calculations!D3,
-  name: cost, type: int, ui: int, value: Calculations!D3}
-- {description: Calculations!C4, id: Calculations!D4,
-  name: cost, type: int, ui: int, value: Calculations!D4}
-- {description: Calculations!C6, id: Calculations!D6,
-  name: cost, type: int, ui: int, value: Calculations!D6}
-- {description: Calculations!C7, id: Calculations!D7,
-  name: cost, type: float, ui: float, value: Calculations!D7}
+  Basic Inputs:
+  - {description: Calculations!C3, id: Calculations!D3,
+    name: cost, type: int, ui: int, value: Calculations!D3}
+  - {description: Calculations!C4, id: Calculations!D4,
+    name: cost, type: int, ui: int, value: Calculations!D4}
+  - {description: Calculations!C6, id: Calculations!D6,
+    name: cost, type: int, ui: int, value: Calculations!D6}
+  - {description: Calculations!C7, id: Calculations!D7,
+    name: cost, type: float, ui: float, value: Calculations!D7}
 output: Calculations!H6:H8

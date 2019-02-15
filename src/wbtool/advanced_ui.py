@@ -6,6 +6,7 @@ from xlwb.xlspy import excelexec
 from xlwb.xlspy.excelfunctions import prevcolumn, nextcolumn
 import yaml, sys
 from openpyxl import load_workbook
+from collections import OrderedDict
 
 def excelcell(w, c):
     s, cell = c.split("!")
@@ -13,11 +14,21 @@ def excelcell(w, c):
 
 def advanced_input_cells(existing_conf, excelfile):
     w = load_workbook(excelfile)
+    sections = ["Off-grid Parameters","Grid Extension Parameters", "Power Genaration",
+                "Loan Details", "Depreciation", "Tax",
+                "ROE/Doscount Rate","Fuel","Clean Eneregy Benifits"]
+                #"REC Inputs-2013", "REC Inputs-2018","REC Inputs-2023","REC Inputs-2028"]
     sheet = "Inputs&Summary"
-    ranges = "D34:D44,D47:D61,D64:D73,D76:D82,D85:D90,D93:D97,D100:D103"
-    range_list = ["!".join([sheet,item]) for item in ranges.split(",")]
-    cells = excelfunctions.extract_ranges(",".join(range_list))
-    uiconf = [generate_ui_data(c, excelcell(w, c)) for c in cells]
+    ranges = ["D24:D27","D29:D31","D34:D44","D47:D61",
+                "D64:D73","D76:D82","D85:D90","D93:D97",
+                "D100:D103"]
+    range_list = ["!".join([sheet,item]) for item in ranges]
+
+    uiconf = OrderedDict()
+    for section, range_ in zip(sections, range_list):
+        cells = excelfunctions.extract_ranges(range_)
+        uiconf[section] = [generate_ui_data(c, excelcell(w, c)) for c in cells]
+
     with open(existing_conf) as f:
         d = yaml.load(f.read())
     d['advanced_inputs'] = uiconf
