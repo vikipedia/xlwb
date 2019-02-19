@@ -49,11 +49,10 @@ on windows use cmd
 <VIRTUALENVPATH>\Lib\activate.bat
 ```
 
-7. run following commands in activated environment
+7. run following commands in activated environment. <XLWB_CLONED_REPO> is path
+where you have cloned git repository on your computer.
 ```
 pip install --editable <XLWB_CLONED_REPO>
-cd <XLWB_CLONED_REPO>
-pip install -r requirements.txt
 ```
 
 8. set environment variables and run flask

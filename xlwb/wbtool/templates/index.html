@@ -1,0 +1,67 @@
+<!doctype html>
+<html>
+  <head>
+    {% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>{% block title %}{{title}}{% endblock %}</title>
+    {% endblock %}
+  </head>
+  <body>
+    <!-- Here is our main header that is used accross all the pages of our website -->
+
+    <header>
+      <h1>{% block mainheader %} Excel to Web Tool {% endblock %}</h1>
+
+      <!-- Even is it's not mandatory, it's common practice to put the main navigation menu within the main header -->
+
+      <nav>
+	{% block navigation %}
+
+        <ul>
+          {% for toolname, description in toolinfo.items() %}
+	            <li><a href="/{{toolname}}">{{description}}</a></li>
+          {% endfor %}
+	          <li><a href="/">About</a></li>
+
+        </ul>
+	{% endblock %}
+      </nav>
+    </header>
+
+    <!-- Here is our page's main content -->
+    <main>
+
+      <!-- It contains an article -->
+      <article>
+	{% block content %}
+        <h2>Welcome</h2>
+	<p>
+	Welcome to Excel to Web tool. With this tool you can easily convert your excel tool to a web application.
+	</p>
+
+	{% endblock %}
+      </article>
+
+      <!-- the aside content can also be nested within the main content -->
+      <aside>
+	{% block sidebar %}
+        <h3>Features</h3>
+
+        <ul>
+          <li>Web based</li>
+          <li>Customisable</li>
+          <li>Multi Platform</li>
+        </ul>
+	{% endblock %}
+      </aside>
+
+    </main>
+
+    <!-- And here is our main footer that is used across all the pages of our website -->
+
+    <footer>
+      <p>Created by <a href="https://github.com/vikipedia/">Vikrant Patil</a>, 2019.</p>
+    </footer>
+
+  </body>
+</html>
