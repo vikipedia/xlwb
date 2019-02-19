@@ -2,12 +2,14 @@ from flask import Flask, render_template, request, redirect, url_for
 import yaml
 from xlwb.xlspy.excelfunctions import excelrange, flatten
 from xlwb.xlspy import excelexec
-import forms, charts
+from . import forms, charts
 import pickle
-import json, os
+import json, os, sys
 
 app = Flask(__name__)
 app.secret_key = b'\x08\x19\xf3\x0e\xfb\x80\x11\x13\x13\xb8\x82c\x99}\x9e{'
+app.config.from_envvar('XLWB_SETTINGS')
+sys.path.insert(0, app.config['EXCELTOOLSDIR'])
 
 def get_range(data, r):
     return [[data[c] for c in row] for row in r]
@@ -26,20 +28,22 @@ def evaluate_conf(inputs, exceldata):
                 else:
                     value['menudata'] = m
     for section in inputs:
-        print(type(inputs), type(section), "&"*20)
-        print(section, "*"*5)
         evaluate_conf_(inputs[section])
 
-def prepare_data(conffile):
+def prepare_data(toolname):
     print("Reading configuration files....")
-    confdata = yaml.load(open(conffile))
+    path = filepath_( toolname + ".yaml")
+    confdata = yaml.load(open(path))
     exceldata = _exceldata(confdata)
     input_cells = confdata['input_cells']
     evaluate_conf(input_cells, exceldata)
     return  confdata
 
+def filepath_(f):
+    return os.path.join(app.config['EXCELTOOLSDIR'], f)
+
 def _exceldata(conf):
-    with open(conf['exceldata'], "rb") as f:
+    with open(filepath_(conf['exceldata']), "rb") as f:
         return pickle.load(f)
 
 
@@ -69,10 +73,10 @@ def prepare_inputs(conf, input_cells, form):
     return inputs
 
 def get_tool_info():
-    conffiles = [f for f in os.listdir() if f.endswith("yaml") and os.path.isfile(f)]
+    conffiles = [t.strip() for t in app.config['EXCELTOOLS'].strip().split(",")]
     d = {}
     for file in conffiles:
-        with open(file) as f:
+        with open(filepath_( file)) as f:
             conf = yaml.load(f)
             d[file.split(".")[0]] = conf['title']
     return d
@@ -85,7 +89,7 @@ def index():
 @app.route("/<toolname>", methods = ["GET","POST"])
 def compute(toolname):
     d = get_tool_info()
-    conf  = prepare_data(toolname + ".yaml" )
+    conf  = prepare_data(toolname)
     exceldata = _exceldata(conf)
     Form = forms.get_form(conf['input_cells'], exceldata)
     form = Form()
@@ -146,7 +150,7 @@ def get_params(*forms):
 @app.route("/advanced/<toolname>", methods = ["POST"])
 def advanced_compute(toolname):
     d = get_tool_info()
-    conf  = prepare_data(toolname + ".yaml" )
+    conf  = prepare_data(toolname)
     exceldata = _exceldata(conf)
     Form1 = forms.get_form(conf['input_cells'] , exceldata)
     form1 = Form1()

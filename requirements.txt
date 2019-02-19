@@ -21,4 +21,3 @@ PyYAML>=4.2b1
 six==1.11.0
 Werkzeug==0.14.1
 WTForms==2.2.1
-xlwb==1.0
