@@ -11,7 +11,7 @@ python -m venv <VIRTUALENVPATH>
 here <VIRTUALENVPATH> is some location where virtual environment will store
 python packages. for more details see documentation of `virtualenv`
 
-2. activate virtualenv by excexuting following command on command prompt.
+2. activate virtualenv by excecuting following command on command prompt.
 ```
 source <VIRTUALENVPATH>/bin/activate
 ```
@@ -29,7 +29,7 @@ pip install --editable <XLWB_CLONED_REPO>
 4. If you have excelsheet with some formulas and some data in it, parse it using
  <XLWB_CLONED_REPO>/excelparse.py utility
 ```
-python <XLWB_CLONED_REPO>/excelparse.py -h
+python <XLWB_CLONED_REPO>/scripts/excelparse.py -h
 usage: Excel data generator [-h] [-o OUTPUT] filename
 
 positional arguments:
