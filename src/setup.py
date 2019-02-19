@@ -8,5 +8,6 @@ setup(
     author='Vikrant Patil',
     author_email='vikrant.patil@gmial.com',
     url='https://github.com/vikipedia/xlwb.git',
-    packages=['xlwb','xlwb.xlspy'],
+    packages=['xlwb','xlwb.xlspy', 'xlwb.wbtool'],
+    include_package_data=True,
 )
