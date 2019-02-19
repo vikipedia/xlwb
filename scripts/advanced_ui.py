@@ -7,13 +7,23 @@ from xlwb.xlspy.excelfunctions import prevcolumn, nextcolumn
 import yaml, sys
 from openpyxl import load_workbook
 from collections import OrderedDict
+import click
 
 def excelcell(w, c):
     s, cell = c.split("!")
     return w[s][cell]
 
-def advanced_input_cells(existing_conf, excelfile):
-    w = load_workbook(excelfile)
+@click.command()
+@click.option('--conf', help='Existing conf file')
+@click.option('--excel', help='Excel File')
+def advanced_input_cells(conf, excel):
+    '''
+    This utility helps in creating advanced inputs.
+    it assumes that you have handcrafted the basic yaml
+    file. It modifies existing file and advanced_inputs
+    section to it.
+    '''
+    w = load_workbook(excel)
     sections = ["Off-grid Parameters","Grid Extension Parameters", "Power Genaration",
                 "Loan Details", "Depreciation", "Tax",
                 "ROE/Doscount Rate","Fuel","Clean Eneregy Benifits"]
@@ -29,7 +39,7 @@ def advanced_input_cells(existing_conf, excelfile):
         cells = excelfunctions.extract_ranges(range_)
         uiconf[section] = [generate_ui_data(c, excelcell(w, c)) for c in cells]
 
-    with open(existing_conf) as f:
+    with open(conf) as f:
         d = yaml.load(f.read())
     d['advanced_inputs'] = uiconf
     print(yaml.dump(d))
@@ -47,4 +57,7 @@ def generate_ui_data(c, cell):
         }
 
 if __name__ == "__main__":
-    advanced_input_cells(sys.argv[1], sys.argv[2])
+    if len(sys.argv)==1:
+        print("For help \n$python advanced_ui.py --help")
+    else:
+        advanced_input_cells()
