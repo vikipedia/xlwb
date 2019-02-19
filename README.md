@@ -19,33 +19,67 @@ optional arguments:
                         be used with bin extension.
 ```
 2. Once data for excelsheet is generated using excelparse utility. follow
-wbtool/guild_inputs.txt to write a yaml file for web application.
+wbtool/guild_inputs.txt to write a yaml file for web application. This yaml
+file will be used to created WEB based UI for your application.
 
-3. copy exceldata generated using excelrun utility and yaml file in folder
-wbtool.
+3. create a folder to store your configurations and files. lets call it
+<YOURTOOLDATA>. Copy exceldata generated using excelrun utility and yaml file
+in the folder <YOURTOOLDATA>
 
-4. create virtualenv with
+4. At any of your preferred location create a configuration file xlwb.cfg. this
+should be configured with following variables.
 ```
-python -m venv FOLDERPATH
+EXCELTOOLSDIR="<YOURTOOLDATA>""
+EXCELTOOLS="<Comma seperated list of yaml files>"
 ```
-here FOLDERPATH is some location where virtual environment will store packages.
 
-5. activate virtualenv by excexuting following command on command prompt.
+5. create virtualenv with
 ```
-source FODERPATH/bin/activate
+python -m venv <VIRTUALENVPATH>
+```
+here <VIRTUALENVPATH> is some location where virtual environment will store
+python packages. for more details see documentation of `virtualenv`
+
+6. activate virtualenv by excexuting following command on command prompt.
+```
+source <VIRTUALENVPATH>/bin/activate
 ```
 on windows use cmd
 ```
-FOLDERPATH\Lib\activate.bat
+<VIRTUALENVPATH>\Lib\activate.bat
 ```
 
-6. run following commands in activated environment
+7. run following commands in activated environment
 ```
-python xlwb/src/setup.py install
-cd xlwb/src/wbtool
+pip install --editable <XLWB_CLONED_REPO>
+cd <XLWB_CLONED_REPO>
 pip install -r requirements.txt
-python excelapp.py
 ```
+
+8. set environment variables and run flask
+```
+XLWB_SETTINGS="<path of xlwb.cfg file>" FLASK_APP=xlwb.wbtool flask run
+```
+
+If you are on Windows, the environment variable syntax depends on command line
+interpreter.
+
+On Command Prompt:
+```
+C:\path\to\app>set XLWB_SETTINGS="<path of xlwb.cfg file>"
+C:\path\to\app>set FLASK_APP=xlwb.wbtool
+C:\path\to\app>flask run
+```
+And on PowerShell:
+```
+PS C:\path\to\app> $env:XLWB_SETTINGS = "<path of xlwb.cfg file>"
+PS C:\path\to\app> $env:FLASK_APP = xlwb.wbtool
+PS C:\path\to\app> flask run
+```
+
+Alternatively you can use python -m flask:
+python -m flask run
+
 this should start a server with following prompt messages
 ```
  * Serving Flask app "excelapp" (lazy loading)
@@ -55,4 +89,4 @@ this should start a server with following prompt messages
  * Debug mode: off
  * Running on http://127.0.0.1:5000/ (Press CTRL+C to quit)
 ```
-7. Open browser and open location  http://127.0.0.1:5000/
+9. Open browser and open location  http://127.0.0.1:5000/
