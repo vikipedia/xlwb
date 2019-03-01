@@ -155,19 +155,20 @@ def advanced_compute(toolname):
     Form1 = forms.get_form(conf['input_cells'] , exceldata)
     form1 = Form1()
 
-    inputs = prepare_inputs(conf, conf['input_cells'], form1)
-    params = [v for v in inputs['input_cells'].values()]
-    excelexec.handle_macro(exceldata, inputs)
+    basicinputs = prepare_inputs(conf, conf['input_cells'], form1)
+    params = [v for v in basicinputs['input_cells'].values()]
+    excelexec.handle_macro(exceldata, basicinputs)
     pre_execute_cells(exceldata, conf['advanced_inputs'])
 
     Form2 = forms.get_form(conf['advanced_inputs'], exceldata)
     form2 = Form2()
     advanced_inputs = from_form(conf['advanced_inputs'], form2)
+    inputs = dict(basicinputs)
     inputs['input_cells'].update(advanced_inputs)
 
     if "finish" in request.form and form1.validate_on_submit() and form2.validate_on_submit():
         exceldata = _exceldata(conf)
-        excelexec.compute(exceldata,inputs)
+        excelexec.compute(exceldata,inputs, basic=False)
         o = get_range(exceldata,  excelrange(conf['output']))
         chartdata = charts.process_chartdata(exceldata, conf)
         return render_template("table.html", toolname=toolname, output=o,params=get_params(form1, form2),

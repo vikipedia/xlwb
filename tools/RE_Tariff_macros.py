@@ -22,28 +22,28 @@ def UpdateWCapitalRequirement(cm, graph, w):
         cm_ = copy_dependency(tariff, cm , graph)
         g = build_graph(cm_)
         _cm = dict(cm_)
-        
+
         AssumedTariff = evaluate_cell(wcaps, _cm, g, w)#this has only values
-        
+
         while TariffDiff > 0.02:
             copy_formulas(cm_, _cm)
              # make use of formulas to compute, do not change
              # Do not replace formula with value
-            
+
             Tariff = evaluate_cell(tariff, _cm, g, w)
             while isinstance(Tariff, tuple):
-                Tariff = evaluate_cell(tariff, _cm, g, w)                
+                Tariff = evaluate_cell(tariff, _cm, g, w)
 
             if not isinstance(Tariff, (float,int)):
                 Tariff = AssumedTariff
             TariffDiff = abs(Tariff - AssumedTariff)
             AssumedTariff = round(Tariff, 2)
-            
+
             _cm[wcaps] = AssumedTariff
 
         cm.update(_cm)
- 
-    
+
+
 def gettechrow(cm, range_):
     """
     returns excel row as a list. handles missing cells
@@ -52,7 +52,7 @@ def gettechrow(cm, range_):
     for cell in excelrange(range_)[0]:
         techs.append(cm[cell] if cell in cm else None)
     return techs
-            
+
 def RecallStoredInputs(cm, technology, state):
     techheaders = gettechrow(cm, "Inputs!E1:Z1")
     col = techheaders.index(technology) + 5
@@ -75,7 +75,7 @@ def RecallStoredInputs(cm, technology, state):
 
     if "Off-grid" in technology:
         return
-    
+
     #FiTIP
     target = "Inputs&Summary!D100"
     techs = [cm[cell] for cell in excelrange("Inputs-REC!D36:K36")[0]]
@@ -89,7 +89,7 @@ def RecallStoredInputs(cm, technology, state):
     f = lambda x: print(x, cm[x])
     copypaste(cm, source, target)
 
-    
+
     if "Solar" in technology:
         source = "Inputs-REC!E30:L32"
     else:
@@ -97,17 +97,15 @@ def RecallStoredInputs(cm, technology, state):
     target = "Inputs&Summary!D109:K111"
     copypaste(cm, source, target)
 
-    
-def HandleTechOrStateChange(data,w=None, **kwargs):
+
+def HandleTechOrStateChange(data,w=None, basic=True, **kwargs):
     for item, value in kwargs.items():
         data[item] = value
     technology = data['Inputs&Summary!D16']
     state = data['Inputs&Summary!D15']
-    RecallStoredInputs(data, technology, state)
-    graph = build_graph(data)
+    if basic:
+        RecallStoredInputs(data, technology, state)
     if technology not in ["Biogass", "Bagasse", "Biomass Gasifier", "Biomass Rankine Cycle"]:
         data['Inputs&Summary!D94'] = 0
-        
+    graph = build_graph(data)
     UpdateWCapitalRequirement(data, graph, w)
-
-
