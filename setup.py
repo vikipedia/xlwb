@@ -16,7 +16,7 @@ setup(
     "networkx==2.2",
     "PyYAML>=4.2b1",
     "numpy",
-    "openpyxl",
+    "openpyxl==2.4.8",
     "Click",
     "pytest",
     ]

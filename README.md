@@ -6,7 +6,13 @@ How to use it?
 
 1. create virtualenv with
 ```
-python -m venv <VIRTUALENVPATH>
+a. Check if virualenv is installed  by typing virtualenv --version
+b. If not installed, install using pip install virtualenv
+
+pip install virtualenv
+
+#python -m venv <VIRTUALENVPATH>
+virtualenv <VIRTUALENVPATH>
 ```
 here <VIRTUALENVPATH> is some location where virtual environment will store
 python packages. for more details see documentation of `virtualenv`
@@ -17,8 +23,8 @@ source <VIRTUALENVPATH>/bin/activate
 ```
 on windows use cmd
 ```
-<VIRTUALENVPATH>\Lib\activate.bat
-```
+<VIRTUALENVPATH>\Scripts\activate.bat
+
 
 3. run following commands in activated environment. <XLWB_CLONED_REPO> is path
 where you have cloned git repository on your computer.
