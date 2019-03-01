@@ -6,12 +6,15 @@ How to use it?
 
 1. create virtualenv with
 ```
+python -m venv <VIRTUALENVPATH>
+
+OR
+
 a. Check if virualenv is installed  by typing virtualenv --version
 b. If not installed, install using pip install virtualenv
 
 pip install virtualenv
 
-#python -m venv <VIRTUALENVPATH>
 virtualenv <VIRTUALENVPATH>
 ```
 here <VIRTUALENVPATH> is some location where virtual environment will store
