@@ -33,7 +33,7 @@ pip install --editable <XLWB_CLONED_REPO>
 ```
 
 4. If you have excelsheet with some formulas and some data in it, parse it using
- <XLWB_CLONED_REPO>/excelparse.py utility
+ <XLWB_CLONED_REPO>/scripts/excelparse.py utility
 ```
 python <XLWB_CLONED_REPO>/scripts/excelparse.py -h
 usage: Excel data generator [-h] [-o OUTPUT] filename
