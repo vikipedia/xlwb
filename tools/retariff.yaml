@@ -29,15 +29,9 @@ advanced_inputs: !!python/object/apply:collections.OrderedDict
       - {default: Inputs&Summary!E35, description: Inputs&Summary!C35, format: 0.00%,
         id: Inputs&Summary!D35, name: Inputs&Summary!D35, type: float, ui: float,
         unit: Inputs&Summary!F35, value: Inputs&Summary!D35}
-      - {default: Inputs&Summary!E36, description: Inputs&Summary!C36, format: '0.00',
-        id: Inputs&Summary!D36, name: Inputs&Summary!D36, type: float, ui: float,
-        unit: Inputs&Summary!F36, value: Inputs&Summary!D36}
       - {default: Inputs&Summary!E37, description: Inputs&Summary!C37, format: 0.00%,
         id: Inputs&Summary!D37, name: Inputs&Summary!D37, type: float, ui: float,
         unit: Inputs&Summary!F37, value: Inputs&Summary!D37}
-      - {default: Inputs&Summary!E38, description: Inputs&Summary!C38, format: '0.00',
-        id: Inputs&Summary!D38, name: Inputs&Summary!D38, type: float, ui: float,
-        unit: Inputs&Summary!F38, value: Inputs&Summary!D38}
       - {default: Inputs&Summary!E39, description: Inputs&Summary!C39, format: 0.00%,
         id: Inputs&Summary!D39, name: Inputs&Summary!D39, type: float, ui: float,
         unit: Inputs&Summary!F39, value: Inputs&Summary!D39}
@@ -60,12 +54,6 @@ advanced_inputs: !!python/object/apply:collections.OrderedDict
     - - {default: Inputs&Summary!E47, description: Inputs&Summary!C47, format: 0.00%,
         id: Inputs&Summary!D47, name: Inputs&Summary!D47, type: float, ui: float,
         unit: Inputs&Summary!F47, value: Inputs&Summary!D47}
-      - {default: Inputs&Summary!E48, description: Inputs&Summary!C48, format: '0.000',
-        id: Inputs&Summary!D48, name: Inputs&Summary!D48, type: float, ui: float,
-        unit: Inputs&Summary!F48, value: Inputs&Summary!D48}
-      - {default: Inputs&Summary!E49, description: Inputs&Summary!C49, format: '0.000',
-        id: Inputs&Summary!D49, name: Inputs&Summary!D49, type: float, ui: float,
-        unit: Inputs&Summary!F49, value: Inputs&Summary!D49}
       - {default: Inputs&Summary!E50, description: Inputs&Summary!C50, format: 0.00%,
         id: Inputs&Summary!D50, name: Inputs&Summary!D50, type: float, ui: float,
         unit: Inputs&Summary!F50, value: Inputs&Summary!D50}
@@ -224,6 +212,29 @@ charts:
       style: 'width: 800px; height: 300px'
   xcategory: true
   xname: Output
+- X: Inputs&Summary!J3:M3
+  id: tarrif1
+  names: Inputs&Summary!I4:I8
+  rowwise: true
+  series: Inputs&Summary!J4:M8
+  types:
+    Table:
+      formats:
+      - NumberFormat:
+          columns: [1, 2, 3]
+          options: {fractionDigits: 2}
+      - NumberFormat:
+          columns: [4,5]
+          options: {pattern: '#,##.##%'}
+      options:
+        allowHtml: true
+        alternatingRowStyle: true
+        cssClassNames: {oddTableRow: odd-row}
+        height: 100%
+        width: 100%
+      style: 'width: 800px; height: 300px'
+  xcategory: true
+  xname: Output
 - X: Tariff!C27:AP27
   id: tarrifchart
   names: Tariff!B49:B57
@@ -289,10 +300,7 @@ input_cells:
     ui: menu
     value: Inputs&Summary!D18
 macro:
-  args: [Inputs&Summary!D14, Inputs&Summary!D15, Inputs&Summary!D16, Inputs&Summary!D17,
-    Inputs&Summary!D18]
   function: HandleTechOrStateChange
   module: RE_Tariff_macros
 output: Inputs&Summary!I3:M8
 title: Re Tarrif And Financial Analysis
-

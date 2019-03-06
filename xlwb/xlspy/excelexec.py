@@ -192,7 +192,7 @@ def test_exec_excel():
     assert abs(evaluate_cell("Sheet1!C4", cellmap, graph) - 3.34)<=accuracy
     assert evaluate_cell("Sheet1!C6", cellmap, graph) == 1
 
-def handle_macro(cm, inputs, w=None, basic=True):
+def handle_macro(cm, inputs, w=None):
     """
     w is precalcuted sheet by excel for testing purpose only
     """
@@ -201,15 +201,19 @@ def handle_macro(cm, inputs, w=None, basic=True):
         print(k, v)
     print("="*20)
 
-    cm.update(input_cells)
-    if "macro" not in inputs:
-        return
 
-    macro = inputs['macro']
-    module = importlib.import_module(macro['module'])
-    func = getattr(module, macro["function"])
-    args = {item:input_cells[item] for item in macro['args'] if item in input_cells}
-    func(cm, w, basic, **args)
+    if "macro" not in inputs:
+        cm.update(input_cells)
+        return
+    else:
+        macro = inputs['macro']
+        module = importlib.import_module(macro['module'])
+        func = getattr(module, macro["function"])
+        if 'args' in macro:
+            args = {item:input_cells[item] for item in macro['args'] if item in input_cells}
+        else:
+            args = input_cells
+        func(cm, w, **args)
 
 
 def parse_args():
@@ -225,8 +229,8 @@ def parse_args():
 
 
 
-def compute(cellmap, inputs, w=None, basic=True):
-    handle_macro(cellmap, inputs, w, basic)
+def compute(cellmap, inputs, w=None):
+    handle_macro(cellmap, inputs, w)
     compute_range(cellmap,inputs['output'], w)
 
 def compute_range(cellmap, outputrange , w=None):

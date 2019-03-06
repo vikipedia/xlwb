@@ -65,13 +65,14 @@ def linechart(celldata, name, X, names, series, category=True, rowwise=True):
         X = [str(int(item)) if isinstance(item, float) else str(item).strip() for item in X]
     else:
         columns = [{'type':'number', 'label':name}]
-    columns = columns + [{'type':'number', 'label':s} for s in names]
+    columns = columns + [{'type':'number', 'label':s} for s in names if s]
     X = [item for item in X if item]
 
     data = [ v for v in series]
     if rowwise:
         data = [X] + data
         data_t = list(zip(*data))
+        data_t = [[s for s in c if str(s).strip()] for c in data_t]
         return columns, data_t
     else:
         return columns, [ [x] + data[i] for i, x in enumerate(X)]

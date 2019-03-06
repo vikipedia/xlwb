@@ -168,7 +168,7 @@ def advanced_compute(toolname):
 
     if "finish" in request.form and form1.validate_on_submit() and form2.validate_on_submit():
         exceldata = _exceldata(conf)
-        excelexec.compute(exceldata,inputs, basic=False)
+        excelexec.compute(exceldata,inputs)
         o = get_range(exceldata,  excelrange(conf['output']))
         chartdata = charts.process_chartdata(exceldata, conf)
         return render_template("table.html", toolname=toolname, output=o,params=get_params(form1, form2),

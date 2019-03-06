@@ -98,13 +98,16 @@ def RecallStoredInputs(cm, technology, state):
     copypaste(cm, source, target)
 
 
-def HandleTechOrStateChange(data,w=None, basic=True, **kwargs):
-    for item, value in kwargs.items():
-        data[item] = value
+def HandleTechOrStateChange(data,w=None, **kwargs):
+    technstate = ["Inputs&Summary!D14", "Inputs&Summary!D15", "Inputs&Summary!D16", "Inputs&Summary!D17","Inputs&Summary!D18"]
+    for item in technstate:
+        data[item] = kwargs[item]
     technology = data['Inputs&Summary!D16']
     state = data['Inputs&Summary!D15']
-    if basic:
-        RecallStoredInputs(data, technology, state)
+    RecallStoredInputs(data, technology, state)
+    advanceditems = [item for item in kwargs if item not in technstate]
+    for item in advanceditems:
+        data[item] = kwargs[item]
     if technology not in ["Biogass", "Bagasse", "Biomass Gasifier", "Biomass Rankine Cycle"]:
         data['Inputs&Summary!D94'] = 0
     graph = build_graph(data)

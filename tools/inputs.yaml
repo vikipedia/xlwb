@@ -1,5 +1,5 @@
-input_cells: {Inputs&Summary!D15: Andhra Pradesh, Inputs&Summary!D16: Solar Thermal, Inputs&Summary!D17: Moderate Remote, Inputs&Summary!D18: Less Scattered}
-output: Inputs&Summary!I3:M8
+input_cells: {Inputs&Summary!D47: 0.6,Inputs&Summary!D15: CERC, Inputs&Summary!D16: Solar PV, Inputs&Summary!D17: Moderate Remote, Inputs&Summary!D18: Less Scattered}
+output: Inputs&Summary!I3:M8,Inputs&Summary!D24:D27,Inputs&Summary!D29:D31,Inputs&Summary!D34:D44,Inputs&Summary!D47:D61,Inputs&Summary!D64:D73,Inputs&Summary!D76:D82,Inputs&Summary!D85:D90,Inputs&Summary!D93:D97,Inputs&Summary!D100:D103
 macro:
   module: RE_Tariff_macros
   function: HandleTechOrStateChange

@@ -33,7 +33,7 @@ provided. e.g
 e.g. Inputs&Summary!I3:M8,Test!A5
 
 4. macro: (optional) it is a sub dictionary which contains information of excel macro equivalent python module.
-      args: [Inputs&Summary!D14, Inputs&Summary!D15, Inputs&Summary!D16, Inputs&Summary!D17,
+      args: (optional .. if not given input_cells + advanced_inputs will be passed) [Inputs&Summary!D14, Inputs&Summary!D15, Inputs&Summary!D16, Inputs&Summary!D17,
         Inputs&Summary!D18]
       function: HandleTechOrStateChange
       module: RE_Tariff_macros
