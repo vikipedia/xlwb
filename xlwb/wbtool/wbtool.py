@@ -146,6 +146,16 @@ def get_params(*forms):
         fields.extend(fl)
     return fields
 
+def diff(x1, x2):
+    def float_(z):
+        if z:
+            return float(z)
+        return 0.0
+    if isinstance(x1, str) and isinstance(x2, str):
+        return x1!=x2
+    else:
+        return abs(float_(x1)-float_(x2))>=0.001
+
 
 @app.route("/advanced/<toolname>", methods = ["POST"])
 def advanced_compute(toolname):
@@ -164,7 +174,7 @@ def advanced_compute(toolname):
     form2 = Form2()
     advanced_inputs = from_form(conf['advanced_inputs'], form2)
     inputs = dict(basicinputs)
-    inputs['input_cells'].update(advanced_inputs)
+    inputs['input_cells'].update({k:v for k,v in advanced_inputs.items() if diff(v,exceldata[k])})
 
     if "finish" in request.form and form1.validate_on_submit() and form2.validate_on_submit():
         exceldata = _exceldata(conf)
