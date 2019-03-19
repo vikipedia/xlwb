@@ -113,6 +113,14 @@ def compute(toolname):
 
 def format_item(v, fielddata):
     f, z = forms.get_format(fielddata)
+    type_ = fielddata['type']
+    if type_ in ["int", "float"]:
+        v = float(v or 0)
+    else:
+        v = v or ""
+    f = f or "{}"
+    if z:
+        return f.format(v*100.0 if v else 0) + "%"
     return f.format(v, fielddata)
 
 def get_other_data(exceldata, advanced_inputs, itemname="default"):
@@ -143,15 +151,12 @@ def pre_execute_cells(exceldata, advanced_inputs):
         excelexec.compute_range(exceldata, defaults)
 
 
-def get_params(*forms):
-    fields = []
-    for form in forms:
-        fl  = [(f.label, f.data) for f in form.get_fields_() if f.id!="csrf_token"]
-        fields.extend(fl)
-    return fields
+def get_params(inputs, exceldata):
+    ids = ",".join([c for c in inputs])
+    excelexec.compute_range(exceldata, ids)
+    return [(exceldata[inputs[c]['description']], format_item(exceldata[c] , inputs[c])) for c in inputs]
 
 def diff(x1, x2, fielddata):
-
     type_ = fielddata['type']
     if type_ in ["int", "float"]:
         return format_item(float(x1 or 0), fielddata) != format_item(float(x2 or 0), fielddata)
@@ -186,7 +191,7 @@ def advanced_compute(toolname):
         excelexec.compute(exceldata,inputs)
         o = get_range(exceldata,  excelrange(conf['output']))
         chartdata = charts.process_chartdata(exceldata, conf)
-        return render_template("table.html", toolname=toolname, output=o,params=get_params(form1, form2),
+        return render_template("table.html", toolname=toolname, output=o,params=get_params(types_dict, exceldata),
                                 title=conf['title'], toolinfo=d,chartdata=chartdata)
     elif "basic" in request.form:
         return redirect(url_for("compute", toolname=toolname))
