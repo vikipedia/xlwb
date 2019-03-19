@@ -111,6 +111,10 @@ def compute(toolname):
                             toolinfo = d,
                             **advanced)
 
+def format_item(v, fielddata):
+    f, z = forms.get_format(fielddata)
+    return f.format(v, fielddata)
+
 def get_other_data(exceldata, advanced_inputs, itemname="default"):
     def value_(v, item):
         if item['ui'] in ['int', 'float']:
@@ -146,16 +150,16 @@ def get_params(*forms):
         fields.extend(fl)
     return fields
 
-def diff(x1, x2):
-    def float_(z):
-        if z:
-            return float(z)
-        return 0.0
-    if isinstance(x1, str) and isinstance(x2, str):
-        return x1!=x2
-    else:
-        return abs(float_(x1)-float_(x2))>=0.001
+def diff(x1, x2, fielddata):
 
+    type_ = fielddata['type']
+    if type_ in ["int", "float"]:
+        return format_item(float(x1 or 0), fielddata) != format_item(float(x2 or 0), fielddata)
+    else:
+        return x1 != x2
+
+def flattendict(d):
+    return {x['id']:x for x in flatten(d.values())}
 
 @app.route("/advanced/<toolname>", methods = ["POST"])
 def advanced_compute(toolname):
@@ -174,7 +178,8 @@ def advanced_compute(toolname):
     form2 = Form2()
     advanced_inputs = from_form(conf['advanced_inputs'], form2)
     inputs = dict(basicinputs)
-    inputs['input_cells'].update({k:v for k,v in advanced_inputs.items() if diff(v,exceldata[k])})
+    types_dict = flattendict(conf['advanced_inputs'])
+    inputs['input_cells'].update({k:v for k,v in advanced_inputs.items() if diff(v,exceldata[k], types_dict[k])})
 
     if "finish" in request.form and form1.validate_on_submit() and form2.validate_on_submit():
         exceldata = _exceldata(conf)
