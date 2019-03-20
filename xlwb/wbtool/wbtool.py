@@ -103,8 +103,9 @@ def compute(toolname):
             excelexec.compute(exceldata,inputs)
             o = get_range(exceldata,  excelrange(conf['output']))
             chartdata = charts.process_chartdata(exceldata, conf)
+            types_dict = flattendict(conf['input_cells'])
             return render_template("table.html", toolname=toolname, output=o, title=conf['title'],
-                                    toolinfo=d, chartdata=chartdata, params=get_params(form))
+                                    toolinfo=d, chartdata=chartdata, params=get_params(types_dict, exceldata))
 
     return render_template("inputform.html", toolname=toolname,
                             form=form, title=conf['title'],
@@ -154,7 +155,7 @@ def pre_execute_cells(exceldata, advanced_inputs):
 def get_params(inputs, exceldata):
     ids = ",".join([c for c in inputs])
     excelexec.compute_range(exceldata, ids)
-    return [(exceldata[inputs[c]['description']], format_item(exceldata[c] , inputs[c])) for c in inputs]
+    return [(exceldata.get(inputs[c]['description'],inputs[c]['description']), format_item(exceldata[c] , inputs[c])) for c in inputs]
 
 def diff(x1, x2, fielddata):
     type_ = fielddata['type']
