@@ -362,7 +362,7 @@ def test_MATCH():
 
 
 def OFFSET(ref, *args):
-    pattern = re.compile(r"('?(?P<SHEET>[\w &-]+)'?[\!\.])?(?P<RANGE>(?P<CELL>[A-Z]+\d+)(:[A-Z]+\d+)?)")
+    pattern = re.compile(r"('?(?P<SHEET>[\w &\-\|]+)'?[\!\.])?(?P<RANGE>(?P<CELL>[A-Z]+\d+)(:[A-Z]+\d+)?)")
     ref = ref.replace("$","")
     m = pattern.match(ref)
     SHEET = m.group("SHEET")

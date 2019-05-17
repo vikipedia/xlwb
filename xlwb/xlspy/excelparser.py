@@ -37,7 +37,7 @@ def pretty_print(tree):
                 print_(a, level+1)
             else:
                 print(" "*(level+1) + str(a))
-                      
+
     print_(tree, 0)
 
 
@@ -50,8 +50,8 @@ class ExpressionEvaluator:
     @classmethod
     def instance(cls, *args):
         return cls(*args)
-        
-    
+
+
     def parse(self, text):
         self.tokens = generate_tokens(text)
         self.tok = None #last token consumed
@@ -70,11 +70,11 @@ class ExpressionEvaluator:
             return True
         else:
             return False
-        
+
 
     def _expect(self,toktype, check=lambda:True):
         'Consume next token if it matches toktype or raise SyntaxError'
-        
+
         if not self._accept(toktype) and check():
             raise SyntaxError('Expected ' + toktype)
 
@@ -82,7 +82,7 @@ class ExpressionEvaluator:
     # Grammar rules follow
     def expr(self):
         "expression ::= expr { ('='|'<'|'>'|'<='|'>=' | '<>' ) expr }*"
-        exprval = self.strexpr() 
+        exprval = self.strexpr()
         assert_ = lambda :self.nexttok.value in ["=",">","<","<=",">=", "<>"]
 
         while self._accept('OPERATOR-INFIX',assert_):
@@ -94,16 +94,16 @@ class ExpressionEvaluator:
 
     def strexpr(self):
         "string expression ::= expr_ { & } expr_"
-        exprval = self.expr_() 
+        exprval = self.expr_()
         assert_ = lambda :self.nexttok.value in ["&"]
-        
+
         while self._accept('OPERATOR-INFIX',assert_):
             op = self.tok.value
             left = exprval or ""
             right = self.expr_() or ""
             exprval = self.create_node(op, left, right)
         return exprval
-    
+
     def expr_(self):
         "expression ::= term { ('+'|'-') term }*"
         exprval = self.term()
@@ -116,7 +116,7 @@ class ExpressionEvaluator:
             exprval = self.create_node(op, left, right)
         return exprval
 
-    
+
     def term(self):
         "term ::= factor { ('*'|'/') factor }*"
         termval = self.power()
@@ -157,7 +157,7 @@ class ExpressionEvaluator:
     def negation(self, pre):
         v = self.factor()
         return self.create_node("*", pre, v)
-    
+
     def factor(self):
         "factor ::= FUNC | RANGE| NUM | ( expr )"
         assert_L = lambda : self.nexttok.subtype == "LOGICAL"
@@ -201,7 +201,7 @@ class ExpressionEvaluator:
             return text.strip().replace('"',"").strip()
         else:
             return text.strip()
-        
+
     def range(self, text):
         """
         evaluate excel cell ranges
@@ -210,19 +210,19 @@ class ExpressionEvaluator:
         if text in namedranges:
             namedrange = self.workbook.get_named_range(text)
             text = namedrange.attr_text
-        
+
         if ":" in text:
             return self.range_(text)
         else:
             return self.cell(text)
 
 
-        
+
     def cell(self, text):
         """
         evaluate indivudual cell of excel
         """
-        pattern = re.compile(r"\$?'?(?P<SHEET>[\w &-]+)'?[\!\.]\$?(?P<COL>[A-Z]+)\$?(?P<ROW>\d+)")
+        pattern = re.compile(r"\$?'?(?P<SHEET>[\w &\-\|]+)'?[\!\.]\$?(?P<COL>[A-Z]+)\$?(?P<ROW>\d+)")
         m = pattern.match(text)
         if pattern.match(text):
             return self.cell1(text, pattern)
@@ -239,7 +239,7 @@ class ExpressionEvaluator:
         c = sheet[self.tok.value]
         return self.parsecell(c)
 
-    
+
     def cell1(self, text, pattern):
         """
         evaluate cells from non active sheet
@@ -253,17 +253,17 @@ class ExpressionEvaluator:
         v = self.parsecell(c)
         self.workbook.active = self.workbook.get_sheet_names().index(active_)
         return v
-    
+
     def parsecell(self, c):
         address =  "!".join([self.workbook.get_active_sheet().title,c.coordinate])
         if c.data_type == c.TYPE_FORMULA:
                 return ("CELL", address)
-        else: 
+        else:
             return c.value
 
     def range_value(self, textattr, pattern):
         m = pattern.match(textattr)
-    
+
         sheet, ranges = m.groups()
         active_ = self.workbook.active.title
         self.workbook.active = self.workbook.get_sheet_names().index(sheet)
@@ -271,10 +271,10 @@ class ExpressionEvaluator:
         v = [[self.parsecell(col) for col in row] for row in s[ranges]]
         self.workbook.active = self.workbook.get_sheet_names().index(active_)
         return v
-        
+
     def range_(self, text):
-        
-        pattern = re.compile(r"\$?'?(?P<SHEET>[\w &-]+)'?[\!\.]\$?(?P<RANGE>[A-Z]+\$?\d+:\$?[A-Z]+\$?\d+)")
+
+        pattern = re.compile(r"\$?'?(?P<SHEET>[\w &\-\|]+)'?[\!\.]\$?(?P<RANGE>[A-Z]+\$?\d+:\$?[A-Z]+\$?\d+)")
         m = pattern.match(text)
 
         if m:
@@ -292,15 +292,15 @@ class ExpressionEvaluator:
         else:
             return functionsmap[op](*args)
 
-            
-            
+
+
     def OFFSET(self):
         assert_C = lambda : self.nexttok.subtype == "CLOSE"
         assert_A = lambda : self.nexttok.subtype == "ARG"
-    
+
         self._advance()
         ref = self.tok.value # take this as literal string
-        
+
         args = []
         while self._accept("SEP", assert_A):
             args.append(self.expr())
@@ -313,25 +313,25 @@ class ExpressionEvaluator:
             print("OFFSET Failure!", ref, args)
             return None
         return self.range(r)
-        
+
     def function(self):
         """
         function ::=  FUNC (EXPR,EXPR..)
         """
         assert_C = lambda : self.nexttok.subtype == "CLOSE"
         assert_A = lambda : self.nexttok.subtype == "ARG"
-    
+
         funcname,_ = self.tok.value.split("(")
         if funcname == "OFFSET":
             return self.OFFSET()
-        
+
         args = [self.expr()]
         while self._accept("SEP", assert_A):
             args.append(self.expr())
         self._expect("FUNC", assert_C)
         return self.create_node(funcname, *args)
 
-   
+
 class ExpressionTreeBuilder(ExpressionEvaluator):
 
 
@@ -344,15 +344,15 @@ class ExpressionTreeBuilder(ExpressionEvaluator):
     def parsecell(self, c):
         address =  "!".join([self.workbook.get_active_sheet().title,c.coordinate])
         return ("CELL", address)
-        
+
 
 def create_cellmap(filename, inputs):
     w = load_workbook(filename=filename)
     cellmap = {}
-    
+
     et = ExpressionTreeBuilder(w)
-    
-    
+
+
     #put named ranges in cellmap
     for r in w.get_named_ranges():
         try:
@@ -376,10 +376,10 @@ def create_cellmap(filename, inputs):
                         cellmap[cellid] = e
                     else:
                         cellmap[cellid] = c.value
-                        
+
     cellmap.update(inputs)
     return cellmap
-    
+
 def output_extn(filename):
     tokens = filename.split(".")
     return ".".join(tokens[:-1] + ["bin"])
@@ -401,12 +401,11 @@ def main(filename, output=None):
     if not output:
         output = output_extn(os.path.basename(filename))
     cm = create_cellmap(filename, {})
-    
+
     with open(output, "wb") as o:
         pickle.dump(cm, o)
-        
+
 
 if __name__ == "__main__":
     args = parse_args()
     main(args.filename, args.output)
-    
