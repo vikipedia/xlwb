@@ -549,34 +549,8 @@ advanced_inputs: !!python/object/apply:collections.OrderedDict
         unit: Inputs&Summary!F103
         value: Inputs&Summary!D103
 charts:
-- X: Inputs&Summary!I4:I8
-  id: tarrif
-  names: Inputs&Summary!J3:M3
-  rowwise: false
-  series: Inputs&Summary!J4:M8
-  types:
-    Table:
-      formats:
-      - NumberFormat:
-          columns:
-          - 1
-          - 2
-          - 3
-          - 4
-          options:
-            fractionDigits: 2
-      options:
-        allowHtml: true
-        alternatingRowStyle: true
-        cssClassNames:
-          oddTableRow: odd-row
-        height: 100%
-        width: 100%
-      style: 'width: 800px; height: 300px'
-  xcategory: true
-  xname: Output
 - X: Inputs&Summary!J3:M3
-  id: tarrif1
+  id: tarrif
   names: Inputs&Summary!I4:I8
   rowwise: true
   series: Inputs&Summary!J4:M8
@@ -706,4 +680,3 @@ macro:
   module: RE_Tariff_macros
 output: Inputs&Summary!I3:M8
 title: Re Tarrif And Financial Analysis
-
