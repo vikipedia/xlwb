@@ -76,13 +76,13 @@ interpreter.
 
 On Command Prompt:
 ```
-C:\path\to\app>set XLWB_SETTINGS="<path of xlwb.cfg file>"
+C:\path\to\app>set XLWB_SETTINGS=C:\xlwb\xlwb.cfg
 C:\path\to\app>set FLASK_APP=xlwb.wbtool
 C:\path\to\app>flask run
 ```
 And on PowerShell:
 ```
-PS C:\path\to\app> $env:XLWB_SETTINGS = "<path of xlwb.cfg file>"
+PS C:\path\to\app> $env:XLWB_SETTINGS = C:\xlwb\xlwb.cfg
 PS C:\path\to\app> $env:FLASK_APP = xlwb.wbtool
 PS C:\path\to\app> flask run
 ```
