@@ -4,17 +4,15 @@ from a excel sheet
 
 How to use it?
 
+0. Check if virualenv is installed  by typing virtualenv --version
+   If not installed, install using
+```
+pip install virtualenv
+```
 1. create virtualenv with
 ```
 python -m venv <VIRTUALENVPATH>
-
 OR
-
-a. Check if virualenv is installed  by typing virtualenv --version
-b. If not installed, install using pip install virtualenv
-
-pip install virtualenv
-
 virtualenv <VIRTUALENVPATH>
 ```
 here <VIRTUALENVPATH> is some location where virtual environment will store
@@ -27,7 +25,7 @@ source <VIRTUALENVPATH>/bin/activate
 on windows use cmd
 ```
 <VIRTUALENVPATH>\Scripts\activate.bat
-
+```
 
 3. run following commands in activated environment. <XLWB_CLONED_REPO> is path
 where you have cloned git repository on your computer.
