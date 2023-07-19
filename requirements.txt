@@ -11,7 +11,7 @@ Jinja2>=2.10.1
 MarkupSafe==1.1.0
 more-itertools==4.3.0
 networkx==2.2
-numpy==1.15.4
+numpy==1.22.0
 openpyxl==2.4.8
 pathlib2==2.3.2
 pluggy==0.8.0
