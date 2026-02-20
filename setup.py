@@ -11,7 +11,7 @@ setup(
     packages=['xlwb','xlwb.xlspy', 'xlwb.wbtool'],
     include_package_data=True,
     install_requires=[
-    "Flask==2.2.5",
+    "Flask==3.1.3",
     "Flask-WTF==0.14.2",
     "networkx==2.2",
     "PyYAML>=4.2b1",
